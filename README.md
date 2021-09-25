@@ -27,7 +27,7 @@ Adeep generator network is a parametric function <img src="https://render.github
 that maps a code vector z to an image x [[1]](#1)..
 
 
-<img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z); x_0) "> 
+<img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z), x_0) "> 
 
 ### Second step: autoencoder
 
