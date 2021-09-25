@@ -7,10 +7,7 @@ Leonardo Ferreira Alves, Roberto Gutierrez Beraldo, André Kazuo Takahata and Ri
 ## Brief description of your algorithm and a mention of the competition.
 The identification of alphanumeric characters depends on the quality of the image obtained. For images with blur caused by lack of focus, it is necessary to restore it to a sharper image, the so-called deblurring task. In this work, we used convolutional neural networks to deblur images from the Helsinki Deblur Challenge 2021 (HDC2021, https://www.fips.fi/HDC2021.php).
 
-
-
-
-![alt text](https://drive.google.com/file/d/1QWlUOZXSlVvV86bBnL2Psu8ui25ZL_DO/view?usp=sharing)
+![Image](focusStep_3_timesR_size_30_sample_0001.jpg)
 
 
 ### Forward problem
