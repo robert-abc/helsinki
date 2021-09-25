@@ -2,22 +2,15 @@
 
 ## Authors, institution, location
 
-Leonardo Alves
-Roberto Gutierrez
-Ricardo Suyama
-André Kazuo Takahata
-
-Universidade Federal do ABC (Brazil)
-
-
+Leonardo Ferreira Alves, Roberto Gutierrez Beraldo, André Kazuo Takahata and Ricardo Suyama - Federal University of ABC (Brazil)
 
 ## Brief description of your algorithm and a mention of the competition.
-The identification of alphanumeric characters depends on the quality of the image obtained. For images with blur caused by lack of focus, it is necessary to restore it to a sharper image, the so-called deblurring. In this work, convolutional neural networks have been used to deblur images from the Helsinki Deblur Challenge 2021 (HDC2021, https://www.fips.fi/HDC2021.php).
+The identification of alphanumeric characters depends on the quality of the image obtained. For images with blur caused by lack of focus, it is necessary to restore it to a sharper image, the so-called deblurring task. In this work, we used convolutional neural networks to deblur images from the Helsinki Deblur Challenge 2021 (HDC2021, https://www.fips.fi/HDC2021.php).
 
 
 
 
-![alt text](https://drive.google.com/file/d/17EqoZdjWcreh0sOE0mI9DAAKTIrYQPe5/view?usp=sharing)
+![alt text](https://drive.google.com/file/d/1QWlUOZXSlVvV86bBnL2Psu8ui25ZL_DO/view?usp=sharing)
 
 
 ### Forward problem
@@ -38,7 +31,7 @@ Para cada nível de dificuldade, o raio da PSF foi estimada visualmente a partir
 we fit a generator network to a single degraded image. In this scheme, the network weights serve as a parametrization of the restored image. The weights are randomly initialized and fitted to a specific degraded image under a task-dependent observation model. In this manner, the only information used to perform reconstruction is contained in the single degraded input image and the handcrafted structure of the network used for reconstruction [[1]](#1)..
 
 
-Adeep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=x = f_{\theta}(z)"> 
+Adeep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=x = f_{\theta_{DIP}}(z)"> 
 that maps a code vector z to an image x [[1]](#1)..
 
 
@@ -46,7 +39,7 @@ that maps a code vector z to an image x [[1]](#1)..
 
 #### Second step: autoencoder
 
-
+f_{\theta_{autoencoder}}(z)
 
 
 
