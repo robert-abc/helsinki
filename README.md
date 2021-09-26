@@ -15,9 +15,7 @@ The identification of alphanumeric characters depends on the quality of the imag
 
 Helsinki Deblur Challenge 2021 (HDC2021, https://www.fips.fi/HDC2021.php).
 
-![Image](focusStep_3_timesR_size_30_sample_0001.jpg | width=100)
-
-
+<img src="focusStep_3_timesR_size_30_sample_0001.jpg" width="48">
 ### Forward problem
 We consider the forward problem, i.e., to blur the image, as the convolution of an image X with a Point Spread Function (PSF) K, resulting in a blurred image Y 
 <img src="https://render.githubusercontent.com/render/math?math=\mathbf{Y}=\mathbf{K}*\mathbf{X}+\mathbf{N}">
