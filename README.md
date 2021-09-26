@@ -16,9 +16,13 @@ The identification of alphanumeric characters depends on the quality of the imag
 Helsinki Deblur Challenge 2021 (HDC2021, https://www.fips.fi/HDC2021.php).
 
 <img src="focusStep_3_timesR_size_30_sample_0001.jpg" width="48">
+
+A
+
+
 ### Forward problem
 We consider the forward problem, i.e., to blur the image, as the convolution of an image X with a Point Spread Function (PSF) K, resulting in a blurred image Y 
-<img src="https://render.githubusercontent.com/render/math?math=\mathbf{Y}=\mathbf{K}*\mathbf{X}+\mathbf{N}">
+<img src="https://render.githubusercontent.com/render/math?math=\mathbf{Y}=\mathbf{K}*\mathbf{X} \+ \mathbf{N}">
 where N is an additive noise. 
 
 While there is no explicit noise assumption, to simulate the out of focus blur the PSF is considered as a disc, where the only parameter is its radius. Inside the disc, the value is 1 and outside the disc the value is 0 [[2]](#1).. For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.
