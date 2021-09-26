@@ -22,8 +22,8 @@ A
 
 ### Forward problem
 We consider the forward problem, i.e., to blur the image, as the convolution of an image X with a Point Spread Function (PSF) K, resulting in a blurred image Y 
-<img src="https://render.githubusercontent.com/render/math?math=\mathbf{Y}=\mathbf{K}*\mathbf{X} \bm{+} \mathbf{N}">
-where N is an additive noise. 
+<img src="https://render.githubusercontent.com/render/math?math=\mathbf{Y}=\mathbf{K}*\mathbf{X}.">
+
 
 While there is no explicit noise assumption, to simulate the out of focus blur the PSF is considered as a disc, where the only parameter is its radius. Inside the disc, the value is 1 and outside the disc the value is 0 [[2]](#1).. For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.
 
@@ -50,15 +50,15 @@ that maps a code vector z to an image x [[1]](#1)..
 <img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z), x_0) "> 
 
 #### Second step: autoencoder
+A
+<img src="https://render.githubusercontent.com/render/math?mathf_{\theta_{autoencoder}}(z)">
 
-f_{\theta_{autoencoder}}(z)
 
-
-
+A
 
 #### Third step: regularized DIP
 
-
+A
 
 
 ## Installation instructions, including any requirements.
