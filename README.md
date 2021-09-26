@@ -52,7 +52,7 @@ that maps a code vector z to an image x [[1]](#1)..
 
 #### Second step: autoencoder
 A
-<img src="https://render.githubusercontent.com/render/math?math = f_{\theta \quad ae}(z)">
+<img src="https://render.githubusercontent.com/render/math?math = f_{\theta}(z)">
 
 
 A
