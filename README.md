@@ -10,13 +10,12 @@
 ¹Federal University of ABC (Santo André, São Paulo, Brazil) - https://www.ufabc.edu.br/
 
 ## Brief description of your algorithm and a mention of the competition.
-For images with blur caused by lack of focus, it is necessary to restore it to a sharper image, the so-called deblurring task. 
-This work is to join the Helsinki Deblur Challenge 2021 (HDC2021, https://www.fips.fi/HDC2021.php), where it will be evaluated in deblurring text images, although it is expected to be a general purpose deblurring algorithm.   
-
+For images with blur caused by lack of focus, it is necessary to restore it to a sharper image, the so-called deblurring task.  
+This work is to join the Helsinki Deblur Challenge 2021 (HDC2021, https://www.fips.fi/HDC2021.php), where it will be evaluated in deblurring text images, although it is expected to be a general purpose deblurring algorithm.  
 <img src="focusStep_3_timesR_size_30_sample_0001.jpg" width="70">
 
 ### Database from the HDC2021 (https://zenodo.org/record/4916176)
-There are 20 steps of blur (from 0 to 19), each step including 100 sharp-blurred image pairs for each font (times and verdana), resulting in 4000 images, as well as the point, the  horizontal and the vertical spread functions of each blur.
+There are 20 steps of blur (from 0 to 19), each step including 100 sharp-blurred image pairs for each font (times and verdana), resulting in 4000 images, as well as the point, the  horizontal and the vertical spread functions of each blur.  
 The images are separated in folders:
 
 1. step
@@ -28,9 +27,9 @@ The images are separated in folders:
 For a single step, the training set includes 70 images (70%) and the test set the 30 remaining images (30%). 
 
 ### Forward problem
-We consider the forward problem, i.e., to blur the image, as the convolution of an image X with a Point Spread Function (PSF) K
-<img src="https://render.githubusercontent.com/render/math?math=y = k*x,">
-where Y is the resulting blurred image.
+We consider the forward problem, i.e., to blur the image, as the convolution of an image x with a Point Spread Function (PSF) k  
+<img src="https://render.githubusercontent.com/render/math?math=y = k*x,">  
+where y is the resulting blurred image.
 
 To simulate the out of focus blur the PSF is considered as a disc, where the only parameter is its radius. Inside the disc, the value is 1 and outside the disc the value is 0 [[2]](#1).. For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.
 
@@ -50,7 +49,7 @@ The first step is to fit a generator network (defined by the user) to a single d
 This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images. 
 
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=x = f_{\theta}(z)"> 
-where the weights θ are  randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[1]](#1)..
+where the weights θ are  randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[1]](#1).
 
 <img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z), x_0) "> 
 
@@ -67,12 +66,38 @@ A
 #### Third step: regularized DIP
 
 * Input: blurred images from the dataset 
-* Output: resulting images from the DIP network (only)
+* Output: resulting images from the regularized DIP network 
+
+The architeture of the deep generative network from the DIP method used here is the same as in the first step, with different hyperparameters and, the main difference, the loss function now includes the sum of both the DIP and the autoencoder outputs. The idea is to use the autoencoder as an regularizer and this regularizer weight is controlled by a  regularization parameter.   
 
 
-## Installation instructions, including any requirements.
+# Installation instructions, including any requirements.
+
+We mention we adapted functions from the following two papers:
+## From the original "Deep Image prior" paper[[1]](#1)
+Available at https://github.com/DmitryUlyanov/deep-image-prior/, under Apache License 2.0
+
+The particular  requisites are shown here: https://github.com/DmitryUlyanov/deep-image-prior/blob/master/README.md
+
+*Prerequisites
+
+
+
+*Prerequisites
+* Python 3.6, PyTorch >= 0.4
+* Requirements: opencv-python, tqdm
+* Platforms: Ubuntu 16.04, TITAN V, cuda-10.0 & cuDNN v-7.5
+* MATLAB for computing evaluation metrics
+
+
+https://github.com/csdwren/SelfDeblur
+
+
+
 In this repository there are 3 files available, one for each step.
-At the same time, there are Google Colab notebooks 
+At the same time, there are the Google Colab notebooks we got the results.
+
+
 
 
 ## Usage instructions.
