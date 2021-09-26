@@ -18,10 +18,10 @@ This work is to join the Helsinki Deblur Challenge 2021 (HDC2021, https://www.fi
 ### Database from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each step including 100 sharp-blurred image pairs for each font (times and verdana), resulting in 4000 images, as well as the point, the  horizontal and the vertical spread functions of each blur.
 The images are separated in folders:
-- step
--- Font
---- CAM01: sharp images
---- CAM02: blurred images
+step
+   Font
+    CAM01: sharp images
+    CAM02: blurred images
 
 For a single step, the training set includes 70 images (70%) and the test set the 30 remaining images (30%). 
 
