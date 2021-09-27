@@ -146,10 +146,10 @@ In this repository there are 3 files available, one for each step.
 Some results with the corresponding text obtained by the OCR pytesseract are:
 
 
-Step 15:
-<img src="focusStep_3_timesR_size_30_sample_0001.jpg" width="70">
-OCR text:
-Target:
+Step 15: Resulting image  
+<img src="focusStep_3_timesR_size_30_sample_0001.jpg" width="70">  
+OCR text:  
+Target:  
 
 
 
