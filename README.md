@@ -48,10 +48,10 @@ The first step is to fit a generator network (defined by the user) to a single d
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math= f_{\theta}(z)"> 
 where the weights θ are  randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[3]](#3).
 
-<img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z), x) "> 
+<img src="https://render.githubusercontent.com/render/math?math=\theta_1^* = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z), y) "> 
 
 After this, the partial reconstructed image is obtained by  
-<img src="https://render.githubusercontent.com/render/math?math=x = f_{\theta^*}(z) "> 
+<img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
 (in this sense, DIP is a learning-free method, as it depend soolely on the degraded image).    
 This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images. 
 
@@ -65,7 +65,7 @@ It resembles an autoencoder (this is the reason for the quotation marks on "auto
 
 Both the part one and part two could be repeated for each blur step, saving the autoencoder weights for each ot them. 
 
-<img src="https://render.githubusercontent.com/render/math?math=\Theta^* = \arg\underset{\Theta}{\min} E (h_{\Theta}(z), x, y) "> 
+<img src="https://render.githubusercontent.com/render/math?math=\Theta^* = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), y) "> 
 
 #### Reconstruction part three: regularized DIP
 
@@ -74,9 +74,11 @@ Both the part one and part two could be repeated for each blur step, saving the 
 
 The architeture of the deep generative network from the DIP method used here is the same as in the first step, with different hyperparameters and, the main difference, the loss function now includes the sum of both the DIP and the autoencoder outputs. The idea is to use the autoencoder as an regularizer and this regularizer weight is controlled by a  regularization parameter.   
 
+<img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z), y) + \lambda h_{\Theta^*}(x_1^*)">   
+where <img src="https://render.githubusercontent.com/render/math?math=\lambda"> is the regularization parameter.
 
-<img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z), x_0, ) "> 
-
+After this, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
+<img src="https://render.githubusercontent.com/render/math?math=x_2^* = f_{\theta_2^*}(z) ">  
 
 # Installation instructions, including any requirements.
 
