@@ -48,7 +48,7 @@ The first step is to fit a generator network (defined by the user) to a single d
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
 where the weights θ are  randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[3]](#3).
 
-<img src="https://render.githubusercontent.com/render/math?math=\theta_1^* = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z), y) "> 
+<img src="https://render.githubusercontent.com/render/math?math=\theta_1^* = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) "> 
 
 After this, the partial reconstructed image is obtained by  
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
@@ -69,12 +69,14 @@ Both the part one and part two could be repeated for each blur step, saving the 
 
 #### Reconstruction part three: regularized DIP
 
-* Input: blurred images from the dataset 
+* Input: blurred images from the dataset (test set)
 * Output: resulting images from the regularized DIP network 
 
-The architeture of the deep generative network from the DIP method used here is the same as in the first step, with different hyperparameters and, the main difference, the loss function now includes the sum of both the DIP and the autoencoder outputs. The idea is to use the autoencoder as an regularizer and this regularizer weight is controlled by a  regularization parameter.   
+The architeture of the deep generative network from the DIP method used here is the same as in the part one, with some different hyperparameters.  
+The main difference is that after 1000 iterations (DIP only), the loss function now includes the sum of both the DIP and the autoencoder outputs.   
+The idea is to use the autoencoder as an regularizer controlled by a regularization parameter.   
 
-<img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z), y) %2B \lambda h_{\Theta^*}(x_1^*)">   
+<img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z) * k, y) %2B \lambda h_{\Theta^*}(x_1^*)">   
 where <img src="https://render.githubusercontent.com/render/math?math=\lambda"> is the regularization parameter.
 
 After this, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
@@ -94,14 +96,26 @@ Although these toolboxes have their prerequisites, all the prerequisites needed 
 
 ## Prerequisites
 * Python
-* B
-* C
-* D
-* E
-* F
-* G
-* H
-* I
+* PyTorch (torch)
+* torch.nn
+* TensorFlow
+* Keras
+* numpy
+* matplotlib
+* tqdm - progress bar
+* print_function
+* argparse
+* os
+* sys
+* re
+* PIL
+* math
+* cv2
+* torchvision
+* sklearn
+* skimage
+* pytesseract
+* scipy.ndimage
 
 
 
