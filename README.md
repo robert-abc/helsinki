@@ -12,12 +12,12 @@
 ## Brief description of the algorithm
 This deblurring work is to join the Helsinki Deblur Challenge 2021 (HDC2021) [[1]](#1)
 URL: https://www.fips.fi/HDC2021.php)  
-The results will be evaluated in out-of-focus text deblurring images, although it is expected to be a general purpose deblurring algorithm.  
+The results will be evaluated in out-of-focus text deblurring images, although it is expected to be a general-purpose deblurring algorithm.  
 
 ### Database from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs.  
 There are 2 different text fonts (times and verdana), resulting in 4000 images.
-There are also the point, the horizontal and the vertical spread functions of each blur.  
+There is also the point, the horizontal and the vertical spread functions of each blur.  
 
 The images are separated in folders:  
 1. step
@@ -43,7 +43,7 @@ For each blur step (from 0 to 19), the PSF radius was visually estimated from th
 The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
 
 It should be noted that we used no blurring matrix, because it would be computational costly. All the blurring is computed directly with the PSF.
-It is a non-blind deblurring algorythm, the PSF is not updated while iterating, assuming the PSF is known.
+It is a non-blind deblurring algorithm, the PSF is not updated while iterating, assuming the PSF is known.
  
 ### Inverse problem 
 There are three parts to reconstruct the sharp images.
@@ -55,24 +55,24 @@ There are three parts to reconstruct the sharp images.
 
 The first step is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
-where the weights θ are  randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[3]](#3).
+where the weights θ are randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[3]](#3).
 
 <img src="https://render.githubusercontent.com/render/math?math=\theta_1^* = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) "> 
 
 After this, the partial reconstructed image is obtained by  
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
-(in this sense, DIP is a learning-free method, as it depend soolely on the degraded image).    
+(in this sense, DIP is a learning-free method, as it depend solely on the degraded image).    
 This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images. 
 
 
-#### Reconstruction part two: "Autoencoder" network with bottleneck architeture
-* Input: resulting images from the DIP network and sharp images from the dataset (traning set)
+#### Reconstruction part two: "Autoencoder" network with bottleneck architecture
+* Input: resulting images from the DIP network and sharp images from the dataset (training set)
 * Output: "autoencoder" network weights
 
 The second part of the reconstruction task is to train an bottleneck deep neural network to map the (first) DIP output to the database sharp images. 
 It resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. In fact, this part two is an image-to-image translation task in a supervised fashion.
 
-Both the part one and part two could be repeated for each blur step, saving the autoencoder weights for each ot them. 
+Both the part one and part two could be repeated for each blur step, saving the autoencoder weights for each of them. 
 
 <img src="https://render.githubusercontent.com/render/math?math=\Theta^* = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), y) "> 
 
@@ -81,9 +81,9 @@ Both the part one and part two could be repeated for each blur step, saving the 
 * Input: blurred images from the dataset (test set)
 * Output: resulting images from the regularized DIP network 
 
-The architeture of the deep generative network from the DIP method used here is the same as in the part one, with some different hyperparameters.  
+The architecture of the deep generative network from the DIP method used here is the same as in the part one, with some different hyperparameters.  
 The main difference is that after 1000 iterations (DIP only), the loss function now includes the sum of both the DIP and the autoencoder outputs.   
-The idea is to use the autoencoder as an regularizer controlled by a regularization parameter.   
+The idea is to use the autoencoder as a regularizer, controlled by a regularization parameter.   
 
 <img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z) * k, y) %2B \lambda h_{\Theta^*}(x_1^*)">   
 where <img src="https://render.githubusercontent.com/render/math?math=\lambda"> is the regularization parameter.
