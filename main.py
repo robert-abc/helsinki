@@ -33,20 +33,20 @@ r=re.compile(".*"+args.extension)
 img_names=list(filter(r.match,img_names))
 print(f"{len(img_names)} images were found.")
 
+# Use of GPU
+torch.backends.cudnn.enabled = True #False #
+torch.backends.cudnn.benchmark = True #False #
+dtype = torch.cuda.FloatTensor #torch.FloatTensor #
+
 # Radius of PSF with respect to deblur levels
 r_list=[0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,26,0,0,0,0]
 radius=r_list[args.deblur_level]
 
 # Model of blur
-blur = Blur(n_planes=1,kernel_type='circle',sigma=radius).type(dtype)
+blur = tools.Blur(n_planes=1,kernel_type='circle',sigma=radius).type(dtype)
 
 # Autoencoder
 autoencoder=autoencoder_tools.get_nn(os.path.join('weights','binary_64_mse.h5'))
-
-# Use of GPU
-torch.backends.cudnn.enabled = True #False #
-torch.backends.cudnn.benchmark = True #False #
-dtype = torch.cuda.FloatTensor #torch.FloatTensor #
 
 for img in img_names:
     path_in=os.path.join(args.input_path,img)
@@ -54,6 +54,6 @@ for img in img_names:
     path_out=path_out[0:-3]+'png'
 
     img_arr,orig_dim,extend_dim=process.load_img(path_in,width=512,enforse_div32='EXTEND')
-    img_out=deblur.deblur(img_arr,blur,autoencoder)
+    img_out=deblur.deblur(img_arr,blur,autoencoder,dtype)
 
     process.save_img(img_out,path_out,orig_dim,extend_dim)

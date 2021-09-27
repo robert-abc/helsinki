@@ -1,4 +1,5 @@
-from process import *
+from utils.process import *
+import torch
 import torch.optim
 import torch.nn as nn
 import cv2
@@ -38,7 +39,7 @@ class Blur(nn.Module):
         self.x = x
         return self.blur_(x)
 
-def get_torch_imgs(img_np,down_factors=[16,8,4]):
+def get_torch_imgs(img_np,down_factors=[16,8,4],dtype=torch.cuda.FloatTensor):
   img_list=[]
 
   for df in down_factors:

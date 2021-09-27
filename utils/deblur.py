@@ -1,9 +1,9 @@
-from process import *
-from tools import *
-from dip import *
-from autoencoder_tools import get_dl_estim
+from utils.process import *
+from utils.tools import *
+from utils.dip import *
+from utils.autoencoder_tools import get_dl_estim
 
-def deblur(img_np,blur,autoencoder):
+def deblur(img_np,blur,autoencoder,dtype):
     #  Image Parameters
     width = 512 # Desired image width
     enforse_div32 = 'EXTEND' # Force image to have dims multiple of 32
@@ -25,7 +25,7 @@ def deblur(img_np,blur,autoencoder):
     iter_mean=1400
     dl_param=[1e-2,1e-2,5e-3,5e-3]
 
-    img_torch=get_torch_imgs(img_np)
+    img_torch=get_torch_imgs(img_np,dtype=dtype)
     out_mean_deblur = np.zeros(img_np.shape)
 
     deblur_input = get_noise(input_depth,input_type,
