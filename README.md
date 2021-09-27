@@ -98,23 +98,22 @@ Although these toolboxes have their prerequisites, all the prerequisites needed 
 * Python: 3.7.12
 
 Packages:
-* argparse: 1.1
-* cv2 (OpenCV): 4.1.2
-* Keras: 2.6.0
-* matplotlib: 3.2.2
-* numpy: 1.19.5
-* Pillow: 7.1.2
-* print_function
-* pytesseract
-* random - 
-* re: 2.2.1
-* scipy: 1.4.1
-* skimage: 0.16.2
-* sklearn: 0.22.2.post1
-* TensorFlow: 2.6.0
-* tqdm: 4.62.2
-* torch: 1.9.0+cu102 
-* torchvision: 0.10.0+cu102  
+* argparse==1.1
+* cv2==4.1.2
+* joblib==1.0.1
+* Keras==2.6.0
+* matplotlib==3.2.2
+* numpy==1.19.5
+* Pillow==7.1.2
+* pytesseract==0.3.8
+* re==2.2.1
+* scipy==1.4.1
+* skimage==0.16.2
+* sklearn==0.22.2.post1
+* tensorflow==2.6.0
+* tqdm==4.62.2
+* torch==1.9.0+cu102 
+* torchvision==0.10.0+cu102  
 
 
 We assume the input images are .TIFF files in our code, but the user can define the file extension.
