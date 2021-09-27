@@ -1,6 +1,6 @@
 import numpy as np
 from PIL import Image
-#import torch
+import torch
 
 def pil_to_np(img_PIL):
     '''Converts image in PIL format to np.array.
@@ -68,6 +68,23 @@ def get_image(path, imsize=-1):
 
     return img, img_np
 
+def get_torch_imgs(img_np,down_factors=[16,8,4]):
+  img_list=[]
+
+  for df in down_factors:
+    dim=(int(img_np.shape[2]/df),int(img_np.shape[1]/df))
+
+    img_np_lr = cv2.resize(img_np[0],dim,interpolation=cv2.INTER_AREA)
+    img_np_lr = cv2.resize(img_np_lr,img_np.shape[2:0:-1],interpolation=cv2.INTER_AREA)
+    img_np_lr = np.expand_dims(img_np_lr,axis=0)
+
+    torch_lr = np_to_torch(img_np_lr).type(dtype)
+    img_list.append(torch_lr)
+
+  img_list.append(np_to_torch(img_np).type(dtype))
+
+  return img_list
+
 def load_img(fname, width, enforse_div32=None):
     '''Loads an image, resizes it, center crops and downscales.
     Args:
@@ -105,4 +122,13 @@ def load_img(fname, width, enforse_div32=None):
 
         img_LR_np = np.pad(img_LR_np,bbox,mode='reflect')
 
-    return img_LR_np, orig_dim
+    return img_LR_np, orig_dim, new_size
+
+def save_img(img_arr, fname, orig_dim, extend_dim):
+    img_arr=img_arr[0:img_arr.shape[1]-extend_dim[0],
+                    0:img_arr.shape[2]-extend_dim[1]]
+
+    img_pil=np_to_pil(img_arr)
+
+    img_pil=img_pil.resize(orig_dim, Image.ANTIALIAS)
+    img_pil.save(fname)
