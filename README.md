@@ -27,8 +27,8 @@ For a single step, the training set includes 70 images (70%) and the test set th
 
 ### Forward problem
 We consider the forward problem, i.e., to blur the image, as the convolution of an image x with a Point Spread Function (PSF) k  
-<img src="https://render.githubusercontent.com/render/math?math=y = k*x,">  
-where y is the resulting blurred image.
+<img src="https://render.githubusercontent.com/render/math?math=y = k*x %2B e,">  
+where y is the resulting blurred image and e is an additive noise.
 
 To simulate the out of focus blur the PSF is considered as a disc, where the only parameter is its radius. Inside the disc, the value is 1 and outside the disc the value is 0 [[2]](#2).. For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.
 
@@ -74,7 +74,7 @@ Both the part one and part two could be repeated for each blur step, saving the 
 
 The architeture of the deep generative network from the DIP method used here is the same as in the first step, with different hyperparameters and, the main difference, the loss function now includes the sum of both the DIP and the autoencoder outputs. The idea is to use the autoencoder as an regularizer and this regularizer weight is controlled by a  regularization parameter.   
 
-<img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z), y) + \lambda h_{\Theta^*}(x_1^*)">   
+<img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z), y) %2B \lambda h_{\Theta^*}(x_1^*)">   
 where <img src="https://render.githubusercontent.com/render/math?math=\lambda"> is the regularization parameter.
 
 After this, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
