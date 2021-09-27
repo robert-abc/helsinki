@@ -123,14 +123,7 @@ We assume the input images are .TIFF files in our code, but the user can define 
 
 
 
-## Executing the code via Google Colab
-The URLs to the Google Colab Notebooks are:
 
-The images can be uploaded to the Google Drive and 
-
-## Executing the files via Anaconda
-
-In this repository there are 3 files available, one for each step.
 
 
 
@@ -141,6 +134,15 @@ In this repository there are 3 files available, one for each step.
 *Example calling the function:
 *$ python3 main.py path/to/input/files path/to/output/files 3
 
+
+## Executing the code via Google Colab
+The URLs to the Google Colab Notebooks are:
+
+The images can be uploaded to the Google Drive and 
+
+## Executing the files via Anaconda
+
+In this repository there are 3 files available, one for each step.
 
 # Examples.
 Some results with the corresponding text obtained by the OCR pytesseract are:
