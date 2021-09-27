@@ -3,6 +3,8 @@ import torch
 import torch.optim
 import torch.nn as nn
 import cv2
+from math import sqrt, exp
+import torch.nn.functional as F
 
 class Blur(nn.Module):
 
@@ -162,7 +164,7 @@ def gaussian(window_size, sigma):
     gauss = torch.Tensor([exp(-(x - window_size // 2) ** 2 / float(2 * sigma ** 2)) for x in range(window_size)])
     return gauss / gauss.sum()
 
-def create_window(window_size, channel):
+def create_window(window_size,channel,dtype):
     _1D_window = gaussian(window_size, 1.5).unsqueeze(1)
     _2D_window = _1D_window.mm(_1D_window.t()).float().unsqueeze(0).unsqueeze(0)
     window = _2D_window.expand(channel, 1, window_size, window_size).contiguous().type(dtype)
@@ -216,9 +218,9 @@ nn.Module):
 
         return _ssim(img1, img2, window, self.window_size, channel, self.size_average)
 
-def ssim(img1, img2, window_size=11, size_average=True):
+def ssim(img1, img2, dtype, window_size=11, size_average=True):
     (_, channel, _, _) = img1.size()
-    window = create_window(window_size, channel)
+    window = create_window(window_size, channel,dtype)
 
     if img1.is_cuda:
         window = window.cuda(img1.get_device())

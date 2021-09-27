@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch.nn.init
 import torch.nn.functional as F
+import numpy as np
 
 def add_module(self, module):
     self.add_module(str(len(self) + 1), module)

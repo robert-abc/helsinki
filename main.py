@@ -34,9 +34,9 @@ img_names=list(filter(r.match,img_names))
 print(f"{len(img_names)} images were found.")
 
 # Use of GPU
-torch.backends.cudnn.enabled = True #False #
-torch.backends.cudnn.benchmark = True #False #
-dtype = torch.cuda.FloatTensor #torch.FloatTensor #
+torch.backends.cudnn.enabled = False #True #
+torch.backends.cudnn.benchmark = False #True #
+dtype = torch.FloatTensor #torch.cuda.FloatTensor #
 
 # Radius of PSF with respect to deblur levels
 r_list=[0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,26,0,0,0,0]
