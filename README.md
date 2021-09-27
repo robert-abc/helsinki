@@ -12,10 +12,13 @@
 ## Brief description of the algorithm
 This deblurring work is to join the Helsinki Deblur Challenge 2021 (HDC2021) [[1]](#1)
 URL: https://www.fips.fi/HDC2021.php)  
-It will be evaluated the results of out-of-focus deblurring text images, although it is expected to be a general purpose deblurring algorithm.  
+The results will be evaluated in out-of-focus text deblurring images, although it is expected to be a general purpose deblurring algorithm.  
 
 ### Database from the HDC2021 (https://zenodo.org/record/4916176)
-There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs for each font (times and verdana), resulting in 4000 images, as well as the point, the  horizontal and the vertical spread functions of each blur.  
+There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs.  
+There are 2 different text fonts (times and verdana), resulting in 4000 images.
+There are also the point, the horizontal and the vertical spread functions of each blur.  
+
 The images are separated in folders:  
 1. step
    1. Font
@@ -26,16 +29,22 @@ Image size: 2360 x 1460 pixels
 For a single step, the training set includes 70 images (70%) and the test set the 30 remaining images (30%). 
 
 ### Forward problem
-We consider the forward problem, i.e., to blur the image, as the convolution of an image x with a Point Spread Function (PSF) k  
+We consider the forward problem, i.e., to blur the image, as 
 <img src="https://render.githubusercontent.com/render/math?math=y = k*x %2B e,">  
-where y is the resulting blurred image and e is an additive noise.
+where   
+x is the sharp image,  
+k is the point spread function (PSF),  
+y is the resulting blurred image,  
+e is an additive noise.  
 
-To simulate the out of focus blur the PSF is considered as a disc, where the only parameter is its radius. Inside the disc, the value is 1 and outside the disc the value is 0 [[2]](#2).. For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.
+To simulate the out of focus blur the PSF is considered as a disk, where the only parameter is the disk radius.  
+Inside the disk, the value is 1 and outside the disk the value is 0 [[2]](#2).  
+For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.  
+The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
 
-It should be noted that we used no blurring matrix, because t would be computational costly. All the blurring is computed directly with the PSF.
-
-The Blur category number is one of the three input arguments of the function. It is also important to select the correct image folder. 
-
+It should be noted that we used no blurring matrix, because it would be computational costly. All the blurring is computed directly with the PSF.
+It is a non-blind deblurring algorythm, the PSF is not updated while iterating, assuming the PSF is known.
+ 
 ### Inverse problem 
 There are three parts to reconstruct the sharp images.
 
