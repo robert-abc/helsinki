@@ -11,19 +11,18 @@
 
 ## Brief description of the algorithm
 This deblurring work is to join the Helsinki Deblur Challenge 2021 (HDC2021) [[1]](#1)
-URL: https://www.fips.fi/HDC2021.php)
+URL: https://www.fips.fi/HDC2021.php)  
 It will be evaluated the results of out-of-focus deblurring text images, although it is expected to be a general purpose deblurring algorithm.  
 
 ### Database from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs for each font (times and verdana), resulting in 4000 images, as well as the point, the  horizontal and the vertical spread functions of each blur.  
-The images are separated in folders:
-
+The images are separated in folders:  
 1. step
    1. Font
      - CAM01: sharp images
       - CAM02: blurred images
-    
-The images are .TIFF files , 
+The images are .TIFF files. 
+Image size: 2360 x 1460 pixels
 For a single step, the training set includes 70 images (70%) and the test set the 30 remaining images (30%). 
 
 ### Forward problem
@@ -46,20 +45,27 @@ There are three parts to reconstruct the sharp images.
 
 
 The first step is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.
-This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images. 
-
-The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=x = f_{\theta}(z)"> 
+The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math= f_{\theta}(z)"> 
 where the weights θ are  randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[3]](#3).
 
-<img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z), x_0) "> 
+<img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z), x) "> 
+
+After this, the partial reconstructed image is obtained by  
+<img src="https://render.githubusercontent.com/render/math?math=x = f_{\theta^*}(z) "> 
+(in this sense, DIP is a learning-free method, as it depend soolely on the degraded image).    
+This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images. 
 
 
-#### Reconstruction part two: Autoencoder
+#### Reconstruction part two: "Autoencoder" network with bottleneck architeture
 * Input: resulting images from the DIP network and sharp images from the dataset (traning set)
-* Output: autoencoder weights
+* Output: "autoencoder" network weights
 
-The second part of the reconstruction task is to train an an autoencoder to map the (first) DIP output to the database sharp images. 
-This could be repeated for each blur step, saving the autoencoder weights for each blur step. 
+The second part of the reconstruction task is to train an bottleneck deep neural network to map the (first) DIP output to the database sharp images. 
+It resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. In fact, this part two is an image-to-image translation task in a supervised fashion.
+
+Both the part one and part two could be repeated for each blur step, saving the autoencoder weights for each ot them. 
+
+<img src="https://render.githubusercontent.com/render/math?math=\Theta^* = \arg\underset{\Theta}{\min} E (h_{\Theta}(z), x, y) "> 
 
 #### Reconstruction part three: regularized DIP
 
@@ -67,6 +73,9 @@ This could be repeated for each blur step, saving the autoencoder weights for ea
 * Output: resulting images from the regularized DIP network 
 
 The architeture of the deep generative network from the DIP method used here is the same as in the first step, with different hyperparameters and, the main difference, the loss function now includes the sum of both the DIP and the autoencoder outputs. The idea is to use the autoencoder as an regularizer and this regularizer weight is controlled by a  regularization parameter.   
+
+
+<img src="https://render.githubusercontent.com/render/math?math=\theta^* = \arg\underset{\theta}{\min} E (f_{\theta}(z), x_0, ) "> 
 
 
 # Installation instructions, including any requirements.
