@@ -45,7 +45,7 @@ There are three parts to reconstruct the sharp images.
 
 
 The first step is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.
-The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math= f_{\theta}(z)"> 
+The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
 where the weights θ are  randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[3]](#3).
 
 <img src="https://render.githubusercontent.com/render/math?math=\theta_1^* = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z), y) "> 
