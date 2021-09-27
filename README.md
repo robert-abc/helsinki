@@ -16,10 +16,10 @@ The results will be evaluated in out-of-focus text deblurring images, although i
 
 ### Database from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs.  
-There are 2 different text fonts (times and verdana), resulting in 4000 images.
-There is also the point, the horizontal and the vertical spread functions of each blur.  
+There are 2 different text fonts (Times New Roman and Verdana), resulting in 4000 images.
+There is also the point, the horizontal, and the vertical spread functions of each blur.  
 
-The images are separated in folders:  
+The images are separated into folders:  
 1. step
    1. Font
      - CAM01: sharp images
@@ -37,12 +37,12 @@ k is the point spread function (PSF),
 y is the resulting blurred image,  
 e is an additive noise.  
 
-To simulate the out of focus blur the PSF is considered as a disk, where the only parameter is the disk radius.  
-Inside the disk, the value is 1 and outside the disk the value is 0 [[2]](#2).  
+To simulate the out-of-focus blur the PSF is considered as a disk, where the only parameter is the disk radius.  
+Inside the disk, the value is 1 and, outside the disk, the value is 0 [[2]](#2).  
 For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.  
 The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
 
-It should be noted that we used no blurring matrix, because it would be computational costly. All the blurring is computed directly with the PSF.
+It should be noted that we used no blurring matrix because it would be computationally expensive. All the blurring is computed directly with the PSF.
 It is a non-blind deblurring algorithm, the PSF is not updated while iterating, assuming the PSF is known.
  
 ### Inverse problem 
@@ -61,7 +61,7 @@ where the weights θ are randomly initialized. Then, the weights are adjusted to
 
 After this, the partial reconstructed image is obtained by  
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
-(in this sense, DIP is a learning-free method, as it depend solely on the degraded image).    
+(in this sense, DIP is a learning-free method, as it depends solely on the degraded image).    
 This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images. 
 
 
@@ -69,10 +69,10 @@ This results in a (third) folder of images, named 'res', with partial reconstruc
 * Input: resulting images from the DIP network and sharp images from the dataset (training set)
 * Output: "autoencoder" network weights
 
-The second part of the reconstruction task is to train an bottleneck deep neural network to map the (first) DIP output to the database sharp images. 
+The second part of the reconstruction task is to train a bottleneck deep neural network to map the (first) DIP output to the database sharp images. 
 It resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. In fact, this part two is an image-to-image translation task in a supervised fashion.
 
-Both the part one and part two could be repeated for each blur step, saving the autoencoder weights for each of them. 
+Both part one and part two could be repeated for each blur step, saving the autoencoder weights for each of them. 
 
 <img src="https://render.githubusercontent.com/render/math?math=\Theta^* = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), y) "> 
 
@@ -81,7 +81,7 @@ Both the part one and part two could be repeated for each blur step, saving the 
 * Input: blurred images from the dataset (test set)
 * Output: resulting images from the regularized DIP network 
 
-The architecture of the deep generative network from the DIP method used here is the same as in the part one, with some different hyperparameters.  
+The architecture of the deep generative network from the DIP method used here is the same as in part one, with some different hyperparameters.  
 The main difference is that after 1000 iterations (DIP only), the loss function now includes the sum of both the DIP and the autoencoder outputs.   
 The idea is to use the autoencoder as a regularizer, controlled by a regularization parameter.   
 
@@ -142,11 +142,11 @@ We assume the input images are .TIFF files in our code, but the user can define 
 ## Executing the code via Google Colab
 The URLs to the Google Colab Notebooks are:
 
-The images can be uploaded to the Google Drive and 
+The images can be uploaded to Google Drive and 
 
 ## Executing the files via Anaconda
 
-In this repository there are 3 files available, one for each step.
+There are 3 files available in this repository, one for each step.
 
 # Examples.
 Some results with the corresponding text obtained by the OCR pytesseract are:
@@ -157,16 +157,12 @@ Step 15: Resulting image
 OCR text:  
 Target:  
 
-
-
-
-
 ## References
 <a id="1">[1]</a> 
 Juvonen, Markus, et al. “Helsinki Deblur Challenge 2021: Description of Photographic Data.” ArXiv:2105.10233 [Cs, Eess], May 2021. arXiv.org, http://arxiv.org/abs/2105.10233.
 
 <a id="2">[2]</a> 
-C.   P.   Hansen,   G.   Nagy,   and   D.   P.   O’Leary.,Deblurring   images:   matrices,   spectra,   and   filtering. Philadelphia:   SIAM,   Societyfor  Industrial  and  Applied  Mathematics,  2006.  [Online].  Available:http://www.imm.dtu.dk/∼pcha/HNO
+C. P. Hansen, G. Nagy, and D. P. O’Leary. Deblurring images: matrices, spectra, and filtering. Philadelphia: SIAM, Society for Industrial and Applied Mathematics, 2006. 
 
 <a id="3">[3]</a> 
 D. Ulyanov, A. Vedaldi, and V. Lempitsky.
@@ -174,6 +170,3 @@ D. Ulyanov, A. Vedaldi, and V. Lempitsky.
 
 <a id="4">[4]</a> 
 D. Ren, K. Zhang, Q. Wang, Q. Hu and W. Zuo, "Neural Blind Deconvolution Using Deep Priors," 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2020, pp. 3338-3347, doi: 10.1109/CVPR42600.2020.00340.
-
-
-
