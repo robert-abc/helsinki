@@ -74,7 +74,6 @@ def deblur(img_np,blur,autoencoder,dtype):
           total_loss += dl_param[ind_dl]*(1 - ssim(torch_dl, out_sharp,dtype))
 
         total_loss.backward()
-        print(i)
         i += 1
 
         return total_loss
