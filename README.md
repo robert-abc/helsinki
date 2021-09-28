@@ -95,8 +95,10 @@ After this, the final reconstructed image <img src="https://render.githubusercon
 <img src="https://render.githubusercontent.com/render/math?math=x_2^* = f_{\theta_2^*}(z) ">  
 
 # Installation, usage instructions and examples.
+All the codes needed are available in this repository. There is the main.py, the "utils" folder with several functions and the "weights" folder with the autoencoder weights.      
 
-There is a jupyter notebook called 'notebook_example.ipynb' explaining how to clone the repository, how to generate the results and how to visualize them. It includes an example from the blur step 15. All the codes needed are available in this repository.    
+There is a jupyter notebook called 'notebook_example.ipynb' explaining how to clone the repository, how to generate the results and how to visualize them. 
+It also includes an example from the blur step 15. 
 
 
 It is also possible to execute the code via Google Colab:  (INSERIR URL)
