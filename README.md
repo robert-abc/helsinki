@@ -99,8 +99,8 @@ After this, the final reconstructed image <img src="https://render.githubusercon
 All the codes are available in this repository. There is a jupyter notebook called 'notebook_example.ipynb' explaining how to clone the repository, how to generate the results and how to visualize them. It includes an example from the blur step 15. 
 It is also possible to execute the code via Google Colab. The HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via 
 
-directly into the Colab (not recommended) or  and linking to github via 
-<img src="drive-to-colab.png" width="220">  
+directly into the Colab (not recommended) or  and linking to github via  
+<img src="drive-to-colab.png" width="300">  
 
 We need to mention that we adapted functions from the following two papers:
 * From the original "Deep Image prior" paper[[3]](#3)
