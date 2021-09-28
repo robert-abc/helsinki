@@ -31,10 +31,7 @@ For a single step, the training set includes 70 images (70%) and the test set th
 ### Forward problem
 We consider the forward problem, i.e., to blur the image, as 
 <img src="https://render.githubusercontent.com/render/math?math=y = k*x %2B e,">  
-where x is the sharp image,  
-k is the point spread function (PSF),  
-y is the resulting blurred image,  
-e is an additive noise.  
+where x is the sharp image, k is the point spread function (PSF), y is the resulting blurred image, and e is an additive noise.  
 
 To simulate the out-of-focus blur the PSF is considered as a disk, where the only parameter is the disk radius.  
 Inside the disk, the value is 1 and, outside the disk, the value is 0 [[2]](#2).  
@@ -53,38 +50,34 @@ There are three parts to reconstruct the sharp images.
 
 
 The first step is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.  
-In this sense, DIP is a learning-free method, as it depends solely on the degraded image.   
+In this sense, DIP is a learning-free method, as it depends solely on the degraded image.  
+Also, no sharp image from the HDC is used in this part one.  
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
-where   
-the weights θ are randomly initialized and   
-z is a random vector.  
+where the generator weights θ are randomly initialized and z is a random vector.  
 
 During the traning phase, the weights are adjusted to map <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> to the image x [[3]](#3), as the equation below includes the convolution with the PSF: 
 
 <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta}_1 = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) ">   
-where  <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta}_1"> are the weights of the generator network after fitting to the degraded image (the subscript refers to the part one) and 
-E is the loss function.  
+where <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta}_1"> are the weights of the generator network after fitting to the degraded image (the subscript refers to the part one) and E is the loss function.  
 
-
-
-
-
-After this, the partial reconstructed image is obtained by  
+After this, the partial reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_1^* "> from part one is obtained by  
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
 
 This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images, with the same number of images as the traning set. 
-
 
 #### Reconstruction part two: "Autoencoder" network with bottleneck architecture
 * Input: resulting images from the DIP network and sharp images from the dataset (training set)
 * Output: "autoencoder" network weights
 
-The second part of the reconstruction task is to train a bottleneck deep neural network to map the (first) DIP output to the database sharp images. 
-It resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. In fact, this part two is an image-to-image translation task in a supervised fashion.
+The second part of the reconstruction task is to train a second deep neural network with a bottleneck architecture to map the (first) DIP output to the sharp images from the HDC2021 dataset. That is, ideally, <img src="https://render.githubusercontent.com/render/math?math= h_{\Theta}(x_1^*) = y) ">   
+where <img src="https://render.githubusercontent.com/render/math?math=\Theta "> are the autoencoder weights.
+
+It resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. In fact, this part two is an image-to-image translation task in a supervised fashion.  
+The training in part two can be described by
+<img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), y) ">  
+where <img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} "> are the estimated autoencoder weights and E is a loss function (not necessarily the same as in part one.
 
 Both part one and part two could be repeated for each blur step, saving the autoencoder weights for each of them. 
-
-<img src="https://render.githubusercontent.com/render/math?math=\Theta^* = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), y) "> 
 
 #### Reconstruction part three: regularized DIP
 
