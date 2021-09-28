@@ -14,14 +14,14 @@ This deblurring work is to join the Helsinki Deblur Challenge 2021 (HDC2021) [[1
 URL: https://www.fips.fi/HDC2021.php)  
 The results will be evaluated in out-of-focus text deblurring images, although it is expected to be a general-purpose deblurring algorithm.  
 
-### Database from the HDC2021 (https://zenodo.org/record/4916176)
+### Dataset from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs.  
 There are 2 different text fonts (Times New Roman and Verdana), resulting in 4000 images.
 There is also the point, the horizontal, and the vertical spread functions of each blur.  
 
 The images are separated into folders:  
-1. step
-   1. Font
+1. step (20 folders, each one for a blur step)
+   1. Font (2 folders - Times and Verdana)
      - CAM01: sharp images
       - CAM02: blurred images
 The images are .TIFF files. 
@@ -53,16 +53,20 @@ There are three parts to reconstruct the sharp images.
 * Output: resulting images from the DIP network (only)
 
 
-The first step is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.
+The first step is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.  
+In this sense, DIP is a learning-free method, as it depends solely on the degraded image.   
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
-where the weights θ are randomly initialized. Then, the weights are adjusted to map the random vector z to the image x [[3]](#3).
+where   
+the weights θ are randomly initialized and   
+z is a random vector  
 
-<img src="https://render.githubusercontent.com/render/math?math=\theta_1^* = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) "> 
+During the traning phase, the weights are adjusted to map <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> to the image x [[3]](#3), as the equation below includes the convolution with the PSF:  
+<img src="https://render.githubusercontent.com/render/math?math=\theta_1^* = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) ">   
 
 After this, the partial reconstructed image is obtained by  
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
-(in this sense, DIP is a learning-free method, as it depends solely on the degraded image).    
-This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images. 
+
+This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images, with the same number of images as the traning set. 
 
 
 #### Reconstruction part two: "Autoencoder" network with bottleneck architecture
