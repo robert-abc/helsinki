@@ -23,7 +23,8 @@ The images are separated into folders:
 1. step (20 folders, each one for a blur step)
    1. Font (2 folders - Times and Verdana)
      - CAM01: sharp images
-      - CAM02: blurred images
+      - CAM02: blurred images  
+
 The images are .TIFF files. We assume the input images are .TIFF files in our code, but the user can define another file extension.
 Image size: 2360 x 1460 pixels
 For a single step, the training set includes 70 images (70%) and the test set the 30 remaining images (30%). 
@@ -101,7 +102,7 @@ It also includes an example from the blur step 15.
 
 
 It is also possible to execute the code via Google Colab:  (INSERIR URL)
-The HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via 
+The HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via  
 <img src="drive-to-colab.png" width="300">  
 (it's not recommended to upload the images directly into the Colab with a free account because of running time limitations) 
 
