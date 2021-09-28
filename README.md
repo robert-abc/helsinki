@@ -89,7 +89,7 @@ The main difference is that after 1000 iterations (DIP only), the loss function 
 The idea is to use the autoencoder as a regularizer, controlled by a regularization parameter.   
 
 <img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z) * k, y) %2B \lambda h_{\Theta^*}(x_1^*)">   
-where <img src="https://render.githubusercontent.com/render/math?math=\lambda"> is the regularization parameter.
+where <img src="https://render.githubusercontent.com/render/math?math=\lambda">is the regularization parameter.
 
 After this, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
 <img src="https://render.githubusercontent.com/render/math?math=x_2^* = f_{\theta_2^*}(z) ">  
