@@ -75,7 +75,7 @@ where <img src="https://render.githubusercontent.com/render/math?math=\Theta "> 
 It resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. In fact, this part two is an image-to-image translation task in a supervised fashion.  
 The training in part two can be described by
 <img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), y) ">  
-where <img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} "> are the estimated autoencoder weights and E is a loss function (not necessarily the same as in part one.
+where <s:Thetahat> are the estimated autoencoder weights and E is a loss function (not necessarily the same as in part one.
 
 Both part one and part two could be repeated for each blur step, saving the autoencoder weights for each of them. 
 
@@ -89,7 +89,7 @@ The main difference is that after 1000 iterations (DIP only), the loss function 
 The idea is to use the autoencoder as a regularizer, controlled by a regularization parameter.   
 
 <img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z) * k, y) %2B \lambda h_{\Theta^*}(x_1^*)">   
-where <img src="https://render.githubusercontent.com/render/math?math=\lambda">is the regularization parameter.
+where λ is the regularization parameter.
 
 After this, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
 <img src="https://render.githubusercontent.com/render/math?math=x_2^* = f_{\theta_2^*}(z) ">  
