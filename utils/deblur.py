@@ -87,5 +87,6 @@ def deblur(img_np,blur,autoencoder,dtype):
     optimize(OPTIMIZER, p, deblur_closure, LR, num_iter)
 
     img_mean=((out_mean_deblur[0]-np.min(out_mean_deblur[0]))/(np.max(out_mean_deblur[0])-np.min(out_mean_deblur[0])))
+    img_mean=np.expand_dims(img_mean,axis=0)
 
     return img_mean

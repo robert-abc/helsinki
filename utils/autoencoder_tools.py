@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import Model, Input, regularizers
 from tensorflow.keras.layers import Conv2D, MaxPool2D, UpSampling2D, Add
+import numpy as np
 
 def get_nn(weight_path):
     Input_img = Input(shape=(64,64,1))
