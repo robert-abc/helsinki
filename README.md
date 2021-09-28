@@ -58,7 +58,7 @@ where the generator weights θ are randomly initialized and z is a random vector
 During the traning phase, the weights are adjusted to map <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> to the image x [[3]](#3), as the equation below includes the convolution with the PSF: 
 
 <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta}_1 = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) ">   
-where <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta}_1"> are the weights of the generator network after fitting to the degraded image (the subscript refers to the part one) and E is the loss function.  
+where <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta}_1"> are the weights of the generator network f after fitting to the degraded image (the subscript refers to the part one) and E is the loss function.  
 
 After this, the partial reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_1^* "> from part one is obtained by  
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
@@ -69,8 +69,8 @@ This results in a (third) folder of images, named 'res', with partial reconstruc
 * Input: resulting images from the DIP network and sharp images from the dataset (training set)
 * Output: "autoencoder" network weights
 
-The second part of the reconstruction task is to train a second deep neural network with a bottleneck architecture to map the (first) DIP output to the sharp images from the HDC2021 dataset. That is, ideally, <img src="https://render.githubusercontent.com/render/math?math= h_{\Theta}(x_1^*) = y) ">   
-where <img src="https://render.githubusercontent.com/render/math?math=\Theta "> are the autoencoder weights.
+The second part of the reconstruction task is to train a second deep neural network with a bottleneck architecture to map the (first) DIP output to the sharp images from the HDC2021 dataset. That is, ideally, <img src="https://render.githubusercontent.com/render/math?math=h_{\Theta}(x_1^*) = y) ">   
+where <img src="https://render.githubusercontent.com/render/math?math=\Theta "> are the weights of the autoencoder h.
 
 It resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. In fact, this part two is an image-to-image translation task in a supervised fashion.  
 The training in part two can be described by
