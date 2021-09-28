@@ -103,10 +103,10 @@ The particular requisites are shown here: https://github.com/csdwren/SelfDeblur/
 
 Although these toolboxes have their prerequisites, all the prerequisites needed for our code are shown below:
 
-## Prerequisites (all versions are the Google Colab defaults)
+## Prerequisites 
 * Python: 3.7.12
 
-Packages:
+Main Packages:
 * argparse==1.1
 * cv2==4.1.2
 * joblib==1.0.1
@@ -118,20 +118,15 @@ Packages:
 * re==2.2.1
 * scipy==1.4.1
 * skimage==0.16.2
-* sklearn==0.22.2.post1
+* sklearn==0.22.2
 * tensorflow==2.6.0
 * tqdm==4.62.2
-* torch==1.9.0+cu102 
-* torchvision==0.10.0+cu102  
+* torch==1.9.0
+* torchvision==0.10.0
 
-
-We assume the input images are .TIFF files in our code, but the user can define the file extension.
-
-
-
-
-
-
+Observations:
+* We assume the input images are .TIFF files in our code, but the user can define the file extension.
+* The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder. Some of the versions were removed to prevent conflicts, but not all of them are necessary running the code outside Google Colab.  
 
 # Usage instructions.
 *Python: The main function must be a callable function from the command line. To achieve this you can use sys.argv or argparse module.
