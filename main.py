@@ -1,4 +1,6 @@
 #python main.py  C:\Users\guys_\Documents\UFABC\Doutorado\Deblur\dados_helsinki\input C:\Users\guys_\Documents\UFABC\Doutorado\Deblur\dados_helsinki\output 0
+#arrumar para não dar conflito com new_size quando não tiver enforse_div32
+#deixar as imagens em ordem alfabética para não ficarem inconsistentes
 
 import argparse
 import re
