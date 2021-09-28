@@ -24,7 +24,7 @@ The images are separated into folders:
    1. Font (2 folders - Times and Verdana)
      - CAM01: sharp images
       - CAM02: blurred images
-The images are .TIFF files. 
+The images are .TIFF files. We assume the input images are .TIFF files in our code, but the user can define another file extension.
 Image size: 2360 x 1460 pixels
 For a single step, the training set includes 70 images (70%) and the test set the 30 remaining images (30%). 
 
@@ -96,11 +96,14 @@ After this, the final reconstructed image <img src="https://render.githubusercon
 
 # Installation, usage instructions and examples.
 
-All the codes are available in this repository. There is a jupyter notebook called 'notebook_example.ipynb' explaining how to clone the repository, how to generate the results and how to visualize them. It includes an example from the blur step 15. 
-It is also possible to execute the code via Google Colab. The HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via 
+There is a jupyter notebook called 'notebook_example.ipynb' explaining how to clone the repository, how to generate the results and how to visualize them. It includes an example from the blur step 15. All the codes needed are available in this repository.    
 
-directly into the Colab (not recommended) or  and linking to github via  
+
+It is also possible to execute the code via Google Colab:  (INSERIR URL)
+The HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via 
 <img src="drive-to-colab.png" width="300">  
+(it's not recommended to upload the images directly into the Colab with a free account because of running time limitations) 
+
 
 We need to mention that we adapted functions from the following two papers:
 * From the original "Deep Image prior" paper[[3]](#3)
@@ -110,7 +113,7 @@ The particular requisites are shown here: https://github.com/DmitryUlyanov/deep-
 https://github.com/csdwren/SelfDeblur (no copyright disclaimer was found)
 The particular requisites are shown here: https://github.com/csdwren/SelfDeblur/blob/master/README.md
 
-Although these toolboxes have their prerequisites, all the prerequisites needed for our code are shown below:
+Although these toolboxes have their prerequisites, the prerequisites main needed for our code are shown below. The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder. Some of the versions were removed to prevent conflicts, but not all of them are necessary running the code outside Google Colab. 
 
 ## Prerequisites 
 * Python: 3.7.12
@@ -132,31 +135,6 @@ Main Packages:
 * tqdm==4.62.2
 * torch==1.9.0
 * torchvision==0.10.0
-
-Observations:
-* We assume the input images are .TIFF files in our code, but the user can define the file extension.
-* The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder. Some of the versions were removed to prevent conflicts, but not all of them are necessary running the code outside Google Colab.  
-
-# Usage instructions.
-
-
-
-## 
-The URLs to the Google Colab Notebooks are:
- 
-
-## Executing the files via Anaconda
-
-There are 3 files available in this repository, one for each step.
-
-# Examples.
-Some results with the corresponding text obtained by the OCR pytesseract are:
-
-
-Step 15: Resulting image  
-
-OCR text:  
-Target:  
 
 ## References
 <a id="1">[1]</a> 
