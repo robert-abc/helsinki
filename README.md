@@ -61,7 +61,7 @@ the weights θ are randomly initialized and
 z is a random vector  
 
 During the traning phase, the weights are adjusted to map <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> to the image x [[3]](#3), as the equation below includes the convolution with the PSF:  
-<img src="https://render.githubusercontent.com/render/math?math=\theta_1^* = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) ">   
+<img src="https://render.githubusercontent.com/render/math?math=\hat{\theta}_1 = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) ">   
 
 After this, the partial reconstructed image is obtained by  
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
