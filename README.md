@@ -94,9 +94,15 @@ where <img src="https://render.githubusercontent.com/render/math?math=\lambda">i
 After this, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
 <img src="https://render.githubusercontent.com/render/math?math=x_2^* = f_{\theta_2^*}(z) ">  
 
-# Installation instructions, including any requirements.
+# Installation, usage instructions and examples.
 
-We first mention we adapted functions from the following two papers:
+All the codes are available in this repository. There is a jupyter notebook called 'notebook_example.ipynb' explaining how to clone the repository, how to generate the results and how to visualize them. It includes an example from the blur step 15. 
+It is also possible to execute the code via Google Colab. The HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via 
+
+directly into the Colab (not recommended) or  and linking to github via 
+<img src="drive-to-colab.png" width="120">  
+
+We need to mention that we adapted functions from the following two papers:
 * From the original "Deep Image prior" paper[[3]](#3)
 Available at https://github.com/DmitryUlyanov/deep-image-prior/, under Apache License 2.0
 The particular requisites are shown here: https://github.com/DmitryUlyanov/deep-image-prior/blob/master/README.md
@@ -132,15 +138,12 @@ Observations:
 * The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder. Some of the versions were removed to prevent conflicts, but not all of them are necessary running the code outside Google Colab.  
 
 # Usage instructions.
-*Python: The main function must be a callable function from the command line. To achieve this you can use sys.argv or argparse module.
-*Example calling the function:
-*$ python3 main.py path/to/input/files path/to/output/files 3
 
 
-## Executing the code via Google Colab
+
+## 
 The URLs to the Google Colab Notebooks are:
-
-The images can be uploaded to Google Drive and 
+ 
 
 ## Executing the files via Anaconda
 
@@ -151,7 +154,7 @@ Some results with the corresponding text obtained by the OCR pytesseract are:
 
 
 Step 15: Resulting image  
-<img src="focusStep_3_timesR_size_30_sample_0001.jpg" width="70">  
+
 OCR text:  
 Target:  
 
