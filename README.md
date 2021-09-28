@@ -30,15 +30,16 @@ For a single step, the training set includes 70 images (70%) and the test set th
 
 ### Forward problem
 We consider the forward problem, i.e., to blur the image, as 
-<img src="https://render.githubusercontent.com/render/math?math=y = k*x %2B e,">  
-where x is the sharp image, k is the point spread function (PSF), y is the resulting blurred image, and e is an additive noise.  
+<img src="https://render.githubusercontent.com/render/math?math=y = k*x,">  
+where x is the sharp image, k is the point spread function (PSF), and y is the resulting blurred image.  
+Although there is visible noise in both sharp and blurred images from the HDC dataset, no explicit noise model (e.g. gaussian additive noise) was considered.    
 
 To simulate the out-of-focus blur the PSF is considered as a disk, where the only parameter is the disk radius.  
-Inside the disk, the value is 1 and, outside the disk, the value is 0 [[2]](#2).  
+Inside the disk, the corresponding value is 1 and, outside the disk, the value is 0 [[2]](#2).  
 For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.  
 The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
 
-It should be noted that we used no blurring matrix because it would be computationally expensive. All the blurring is computed directly with the PSF.
+It should be noted that we used no blurring matrix because it would be computationally expensive. All the blurring are computed directly with the PSF.
 It is a non-blind deblurring algorithm, the PSF is not updated while iterating, assuming the PSF is known.
  
 ### Inverse problem 
@@ -48,8 +49,7 @@ There are three parts to reconstruct the sharp images.
 * Input: blurred images from the dataset (training set)
 * Output: resulting images from the DIP network (only)
 
-
-The first step is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.  
+The part one is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.  
 In this sense, DIP is a learning-free method, as it depends solely on the degraded image.  
 Also, no sharp image from the HDC is used in this part one.  
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
