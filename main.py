@@ -48,7 +48,7 @@ radius=r_list[args.deblur_level]
 blur = tools.Blur(n_planes=1,kernel_type='circle',sigma=radius).type(dtype)
 
 # Autoencoder
-autoencoder=autoencoder_tools.get_nn(os.path.join('weights','binary_64_mse.h5'))
+autoencoder=autoencoder_tools.get_nn(os.path.join('weights','weights_15.h5'))
 
 for img in img_names:
     path_in=os.path.join(args.input_path,img)
