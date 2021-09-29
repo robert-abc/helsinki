@@ -20,7 +20,7 @@ def deblur(img_np,blur,autoencoder,dtype,num_iter=1500):
     iter_lr=[200,400,600]
     LR = 0.01
     reg_noise_std= 0.03
-    iter_dl=[1000,1100,1200,1300]
+    iter_dl=[num_iter-500,num_iter-400,num_iter-300,num_iter-200]
     iter_mean=num_iter-100
     dl_param=[1e-2,1e-2,5e-3,5e-3]
 

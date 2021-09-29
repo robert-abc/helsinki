@@ -76,7 +76,7 @@ if(args.in_dip_path is None):
         path_blur=os.path.join(args.blur_path,img)
 
         img_arr,_,_=process.load_img(path_blur,width=512,enforse_div32='EXTEND')
-        img_out=deblur.deblur(img_arr,blur,None,dtype)
+        img_out=deblur.deblur(img_arr,blur,None,dtype,num_iter=800)
         arr_x[i]=autoencoder_tools.preprocess_array(img_out,crop_x,crop_y)
 
         if(args.out_dip_path is not None):
@@ -113,7 +113,7 @@ for i in range(0,arr_x.shape[0]-5):
   train_y.append(feature_extraction.image.extract_patches_2d(arr_y[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
 
 for i in range(arr_x.shape[0]-5,arr_x.shape[0]):
-  i_rand=random.randint(0,1000)
+  i_rand=random.randint(0,1e4)
 
   valid_x.append(feature_extraction.image.extract_patches_2d(arr_x[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
   valid_y.append(feature_extraction.image.extract_patches_2d(arr_y[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
@@ -123,12 +123,16 @@ train_y=np.concatenate(train_y,axis=0)
 valid_x=np.concatenate(valid_x,axis=0)
 valid_y=np.concatenate(valid_y,axis=0)
 
+del arr_x
+del arr_y_orig
+del arr_y
+
 # Autoencoder
 mse = tf.keras.losses.MeanSquaredError()
 autoencoder=autoencoder_tools.get_nn()
 autoencoder.compile(optimizer='adam', loss=mse)
 early_stopper = EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=3, verbose=1, mode='min')
-model_checkpoint = ModelCheckpoint(join(args.weight_path,'weights_'+str(args.blur_level)+'.h5'),save_best_only=True)
+model_checkpoint = ModelCheckpoint(os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.h5'),save_best_only=True)
 
 history = autoencoder.fit(train_x,train_y,
             epochs=100,
