@@ -92,7 +92,7 @@ The training in part two can be described by
 <img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), x) ">  
 where <img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} ">  are the estimated autoencoder weights and E is a loss function (not necessarily the same as in part one.
 
-### Note: 
+### Notes: 
 * The architecture resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. 
 * In fact, this part two is an image-to-image translation task in a supervised fashion.  
 * Both part one and part two should be repeated for each blur step, saving the autoencoder weights for each of them.  
