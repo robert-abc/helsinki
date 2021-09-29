@@ -111,7 +111,7 @@ The idea is to use the autoencoder as prior information (as a regularizer), cont
 
 During the initial 1000 iterations, the training phase can be described as in part one. 
 After 1000 iterations, a autoencoder output term is included in the loss function, that is,  
-<img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z) * k, y) %2B \lambda h_{\Theta^*}(x_1^*)">   
+<img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z) * k, y) %2B \lambda h_{\Theta^*}(x_1^*)]">   
 where λ is the regularization parameter.
 
 After the user-defined number of iterations, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
