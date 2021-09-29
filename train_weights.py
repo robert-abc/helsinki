@@ -50,7 +50,7 @@ torch.backends.cudnn.benchmark = True #False #
 dtype = torch.cuda.FloatTensor #torch.FloatTensor #
 
 # Radius of PSF with respect to deblur levels
-r_list=[0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,26,31,0,0,0]
+r_list=[1,2,3,4,6,8,8,11,13,15,17,18,20,21,0,26,31,0,0,0]
 radius=r_list[args.blur_level]
 
 # Model of blur
