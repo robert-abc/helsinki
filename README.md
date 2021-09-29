@@ -38,6 +38,10 @@ Although there is visible noise in both sharp and blurred images from the HDC da
 To simulate the out-of-focus blur the PSF is considered as a disk, where the only parameter is the disk radius.  
 Inside the disk, the corresponding value is 1 and, outside the disk, the value is 0 [[2]](#2).  
 For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.  
+
+
+
+
 The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
 
 It should be noted that we used no blurring matrix because it would be computationally expensive. All the blurring are computed directly with the PSF.
@@ -64,6 +68,8 @@ After this, the partial reconstructed image <img src="https://render.githubuserc
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
 
 This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images, with the same number of images as the traning set. 
+
+Note: To estimate visually the PSF, as described in the forward problem section, we executed this part one with a single degraded image (from each step), varying the PSF radius and comparing the output to the corresponding sharp image. 
 
 #### Reconstruction part two: "Autoencoder" network with bottleneck architecture
 * Input: resulting images from the DIP network and sharp images from the dataset (training set)
@@ -95,30 +101,31 @@ After this, the final reconstructed image <img src="https://render.githubusercon
 <img src="https://render.githubusercontent.com/render/math?math=x_2^* = f_{\theta_2^*}(z) ">  
 
 # Installation, usage instructions and examples.
-All the codes needed are available in this repository. There is the main.py, the "utils" folder with several functions and the "weights" folder with the autoencoder weights.      
+All the codes we used are available in this repository. There is the main.py, the "utils" folder with several functions and the "weights" folder with the autoencoder weights.
 
-There is a jupyter notebook called 'notebook_example.ipynb' explaining how to clone the repository, how to generate the results and how to visualize them. 
+Part one and Part two refers to the "..............py" file. It results in the autoencoder weights. 
+We would like to have the autoencoder weights for all the blur steps, but unfortunately it was not possible in time.
+
+Part three, the reconstruction step (and the only part you are actually requiring), can be seen in the jupyter notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results and how to visualize them. 
 It also includes an example from the blur step 15. 
 
 
-It is also possible to execute the code via Google Colab:  (INSERIR URL)
 The HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via  
 <img src="drive-to-colab.png" width="300">  
 (it's not recommended to upload the images directly into the Colab with a free account because of running time limitations) 
 
-
-We need to mention that we adapted functions from the following two papers:
-* From the original "Deep Image prior" paper[[3]](#3)
-Available at https://github.com/DmitryUlyanov/deep-image-prior/, under Apache License 2.0
-The particular requisites are shown here: https://github.com/DmitryUlyanov/deep-image-prior/blob/master/README.md
-* From a derivative work: Neural Blind Deconvolution Using Deep Priors [[4]](#4)
-https://github.com/csdwren/SelfDeblur (no copyright disclaimer was found)
-The particular requisites are shown here: https://github.com/csdwren/SelfDeblur/blob/master/README.md
-
-Although these toolboxes have their prerequisites, the prerequisites main needed for our code are shown below. The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder. Some of the versions were removed to prevent conflicts, but not all of them are necessary running the code outside Google Colab. 
-
 ## Prerequisites 
 * Python: 3.7.12
+
+Note: It is necessary to have a compatible Python CUDA for GPU support.   
+This is one of the reasons we are using the Google Colab.   
+Because of the COVI19 pandemic, out university is closed and we are using our personal notebooks, but they have basic specifications.
+Even the free Colab account is more powerful (althogh there are usage limits). 
+
+So, here is the Google Colab URL to execute the code:  (INSERIR URL)
+
+The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder.   
+Some of the versions were removed to prevent conflicts, but not all of them are necessary running the code outside Google Colab. 
 
 Main Packages:
 * argparse==1.1
@@ -137,6 +144,17 @@ Main Packages:
 * tqdm==4.62.2
 * torch==1.9.0
 * torchvision==0.10.0
+
+We need to mention that we adapted functions from the following two papers:
+* From the original "Deep Image prior" paper[[3]](#3)
+Available at https://github.com/DmitryUlyanov/deep-image-prior/, under Apache License 2.0
+The particular requisites are shown here: https://github.com/DmitryUlyanov/deep-image-prior/blob/master/README.md
+* From a derivative work: Neural Blind Deconvolution Using Deep Priors [[4]](#4)
+https://github.com/csdwren/SelfDeblur (no copyright disclaimer was found)
+The particular requisites are shown here: https://github.com/csdwren/SelfDeblur/blob/master/README.md
+
+Although these toolboxes have their own prerequisites, the requirements.txt includes them. 
+
 
 ## References
 <a id="1">[1]</a> 
