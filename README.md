@@ -76,7 +76,8 @@ For each blur step (from 0 to 19), the PSF radius was visually estimated from th
 * We ran part one with a single degraded image (from each step), varying the PSF radius, comparing the output to the corresponding sharp image and choosing the "best" radius.
 * We limited our radius to integer numbers, but it was possible to choose non-integer numbers too.
 
-One example can be seen in the notebook "Find_Radius-s5r8.ipynb" of this repository, where s5 denotes step 05 and r8 denotes radius = 8.  
+One example can be seen in the notebook "Find_Radius-s5r8.ipynb" of this repository, where s5 denotes step 05 and r8 denotes radius = 8.   
+The result is shown in the cells #16 and #17.  
 This notebook also illustrates the reconstruction part one: given the radius, reconstruct all the blurred images in the training set.
 
 ## Inverse problem part two: "Autoencoder" network with bottleneck architecture
