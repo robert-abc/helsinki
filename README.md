@@ -14,47 +14,48 @@ This deblurring work is to join the Helsinki Deblur Challenge 2021 (HDC2021) [[1
 URL: https://www.fips.fi/HDC2021.php)  
 The results will be evaluated in out-of-focus text deblurring images, although it is expected to be a general-purpose deblurring algorithm.  
 
-
+The main idea here is based on the deep image prior reconstruction, but, instead of using the deep image prior alone, a DNN with a bottleneck architecture (as an autoencoder) is used to help the deblurring task.
 
 ## Dataset from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs.  
 There are 2 different text fonts (Times New Roman and Verdana), resulting in 4000 images.
-There is also the point, the horizontal, and the vertical spread functions of each blur.  
-
 The images are separated into folders:  
 1. step (20 folders, each one for a blur step)
    1. Font (2 folders - Times and Verdana)
      - CAM01: sharp images
       - CAM02: blurred images  
 
-The images are .TIFF files. We assume the input images are .TIFF files in our code, but the user can define another file extension.
-Image size: 2360 x 1460 pixels
-For a single step, the training set includes 70 images (70%) and the test set the 30 remaining images (30%). 
+### Notes:
+*  Each image has its ground-truth text.
+* There is also the point, the horizontal, and the vertical spread functions of each blur.  
+* All the images are .TIFF files. We assume the input images are .TIFF files in our code, but the user can define another file extension.  
+* The input image size: 2360 x 1460 pixels.
+* Expected output image size: 2360 x 1460 pixels.
 
-## Forward problem
+## Hypothesis of the forward problem 
 We consider the forward problem, i.e., to blur the image, as 
 <img src="https://render.githubusercontent.com/render/math?math=y = k*x,">  
 where x is the sharp image, k is the point spread function (PSF), and y is the resulting blurred image.  
 Although there is visible noise in both sharp and blurred images from the HDC dataset, no explicit noise model (e.g. gaussian additive noise) was considered.    
 
-To simulate the out-of-focus blur the PSF is considered as a disk, where the only parameter is the disk radius.  
+The PSF is considered as a disk to simulate the out-of-focus blur , where the only parameter is the disk radius.  
 Inside the disk, the corresponding value is 1 and, outside the disk, the value is 0 [[2]](#2).  
 
-The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
-
-It should be noted that we used no blurring matrix because it would be computationally expensive. All the blurring are computed directly with the PSF.
-It is a non-blind deblurring algorithm and the PSF is not updated while iterating.
+### Notes:
+* The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
+* All the blurring are computed by convolution with the PSF (like the conv2 function). 
+* We used no blurring matrix because it would be computationally expensive (like the Ax = b linear system). 
+* We assume we know the PSF, altough there could be better PSF estmations. In this sense, it is a non-blind deblurring algorithm.
+* The PSF is not updated while iterating (and that could be accomplished in the future).
  
-## Inverse problem 
-There are three parts to reconstruct the sharp images.
-
-### Reconstruction part one: Deep image prior (DIP)
+## Inverse problem part one: partial reconstruction via Deep image prior (DIP)
 * Input: blurred images from the dataset (training set)
 * Output: resulting images from the DIP network (only)
 
-The part one is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.  
-In this sense, DIP is a learning-free method, as it depends solely on the degraded image.  
-Also, no sharp image from the HDC is used in this part one.  
+The part one is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.
+In this sense, DIP is a learning-free method, as it depends solely on the degraded image. No sharp image from the HDC is used in this part one.  
+
+### DIP overview
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
 where the generator weights θ are randomly initialized and z is a random vector.  
 
@@ -65,43 +66,60 @@ where <img src="https://render.githubusercontent.com/render/math?math=\hat{\thet
 After this, the partial reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_1^* "> from part one is obtained by  
 <img src="https://render.githubusercontent.com/render/math?math=x_1^* = f_{\theta_1^*}(z) ">   
 
-This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images, with the same number of images as the traning set. 
-
-### Estimating the PSF radius
-For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.  
-We executed this part one with a single degraded image (from each step), varying the PSF radius and comparing the output to the corresponding sharp image.
-One exemple is in the file "Find_Radius-s5r8.ipynb" of this repository, where s5 denotes step 05 and r8 denotes radius = 8.
+### Notes:
+* For a single blur step, our training set included 70 blurred images (70% of the total).
+* This results in a (third) folder of images, named 'res', with 70 partial reconstructions of the blurred images (the same number of images as the traning set). 
 
 
-#### Reconstruction part two: "Autoencoder" network with bottleneck architecture
+### Estimating the PSF radius in part one
+For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs:
+* We ran part one with a single degraded image (from each step), varying the PSF radius, comparing the output to the corresponding sharp image and choosing the "best" radius.
+* We limited our radius to integer numbers, but it was possible to choose non-integer numbers too.
+
+One example can be seen in the notebook "Find_Radius-s5r8.ipynb" of this repository, where s5 denotes step 05 and r8 denotes radius = 8.  
+This notebook also illustrates the reconstruction part one: given the radius, reconstruct all the blurred images in the training set.
+
+## Inverse problem part two: "Autoencoder" network with bottleneck architecture
 * Input: resulting images from the DIP network and sharp images from the dataset (training set)
 * Output: "autoencoder" network weights
 
-The second part of the reconstruction task is to train a second deep neural network with a bottleneck architecture to map the (first) DIP output to the sharp images from the HDC2021 dataset. That is, ideally, <img src="https://render.githubusercontent.com/render/math?math=h_{\Theta}(x_1^*) = y) ">   
-where <img src="https://render.githubusercontent.com/render/math?math=\Theta "> are the weights of the autoencoder h.
+The second part of the reconstruction task is to train a second deep neural network with a bottleneck architecture to map the (first) DIP output to the sharp images from the HDC2021 dataset. 
 
-It resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. In fact, this part two is an image-to-image translation task in a supervised fashion.  
+### Autoencoder overview
+Ideally, wee wwant the leanring machine to be able to convert the DIP output <img src="https://render.githubusercontent.com/render/math?math=x_1^* "> to the sharp image x, that is, <img src="https://render.githubusercontent.com/render/math?math=h_{\Theta}(x_1^*) = x ">,  where <img src="https://render.githubusercontent.com/render/math?math=\Theta "> are the weights of the autoencoder h.
+
 The training in part two can be described by
-<img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), y) ">  
+<img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} = \arg\underset{\Theta}{\min} E (h_{\Theta}(x_1^*), x) ">  
 where <img src="https://render.githubusercontent.com/render/math?math=\hat{\Theta} ">  are the estimated autoencoder weights and E is a loss function (not necessarily the same as in part one.
 
-Both part one and part two could be repeated for each blur step, saving the autoencoder weights for each of them. 
+### Note: 
+* The architecture resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. 
+* In fact, this part two is an image-to-image translation task in a supervised fashion.  
+* Both part one and part two should be repeated for each blur step, saving the autoencoder weights for each of them.  
+* The two networks architectures and the training itself do not change over the different blur steps, only the PSF radius and the input images (as in the HDC2021 rules).   
 
-#### Reconstruction part three: regularized DIP
+## Inverse problem part three: Regularized DIP
 
-* Input: blurred images from the dataset (test set)
+* Input: blurred images from the dataset (test set), autoencoder weights Θ
 * Output: resulting images from the regularized DIP network 
 
-The architecture of the deep generative network from the DIP method used here is the same as in part one, with some different hyperparameters.  
-The main difference is that after 1000 iterations (DIP only), the loss function now includes the sum of both the DIP and the autoencoder outputs.   
-The idea is to use the autoencoder as a regularizer, controlled by a regularization parameter.   
+The architecture of the deep generative network from the DIP method used in part three is the same as in part one, with some different parameters.  
+The main difference is that after 1000 iterations (DIP only), the loss function will include the sum of both the DIP and the autoencoder outputs.   
+The idea is to use the autoencoder as prior information (as a regularizer), controlled by a regularization parameter.  
 
+### Regularized DIP overview
+
+During the initial 1000 iterations, the training phase can be described as in part one. 
+After 1000 iterations, a autoencoder output term is included in the loss function, that is,  
 <img src="https://render.githubusercontent.com/render/math?math=\theta_2^* = \arg\underset{\theta_2}{\min} E [(f_{\theta_2}(z) * k, y) %2B \lambda h_{\Theta^*}(x_1^*)">   
 where λ is the regularization parameter.
 
-After this, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
+After the user-defined number of iterations, the final reconstructed image <img src="https://render.githubusercontent.com/render/math?math=x_2^*"> is obtained by   
 <img src="https://render.githubusercontent.com/render/math?math=x_2^* = f_{\theta_2^*}(z) ">  
 
+### Notes:
+* In part three, a single blurred image from the test set (30 remaining images from that blur step) is reconstructed at one time, so we will not necessarily use all the test set images.
+ 
 # Installation, usage instructions and examples.
 All the codes we used are available in this repository. There is the main.py, the "utils" folder with several functions and the "weights" folder with the autoencoder weights.
 
