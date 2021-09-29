@@ -1,7 +1,6 @@
-# Helsinki deblur challenge 2021
+# Helsinki deblur challenge 2021: Brief description of the algorithm
 
-## Authors, institution, location
-
+## Authors
 * André Kazuo Takahata¹ - andre.t@ufabc.edu.br
 * Leonardo Ferreira Alves¹ - leonardo.alves@ufabc.edu.br
 * Ricardo Suyama¹ - ricardo.suyama@ufabc.edu.br
@@ -9,14 +8,14 @@
 
 ¹Federal University of ABC (Santo André, São Paulo, Brazil) - https://www.ufabc.edu.br/
 
-## Brief description of the algorithm
+## 
 This deblurring work is to join the Helsinki Deblur Challenge 2021 (HDC2021) [[1]](#1)
 URL: https://www.fips.fi/HDC2021.php)  
 The results will be evaluated in out-of-focus text deblurring images, although it is expected to be a general-purpose deblurring algorithm.  
 
 The main idea here is based on the deep image prior reconstruction, but, instead of using the deep image prior alone, a DNN with a bottleneck architecture (as an autoencoder) is used to help the deblurring task.
 
-## Dataset from the HDC2021 (https://zenodo.org/record/4916176)
+## 1. Dataset from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs.  
 There are 2 different text fonts (Times New Roman and Verdana), resulting in 4000 images.
 The images are separated into folders:  
@@ -32,7 +31,7 @@ The images are separated into folders:
 * The input image size: 2360 x 1460 pixels.
 * Expected output image size: 2360 x 1460 pixels.
 
-## Hypothesis of the forward problem 
+## 2. Hypothesis of the forward problem 
 We consider the forward problem, i.e., to blur the image, as 
 <img src="https://render.githubusercontent.com/render/math?math=y = k*x,">  
 where x is the sharp image, k is the point spread function (PSF), and y is the resulting blurred image.  
@@ -48,14 +47,14 @@ Inside the disk, the corresponding value is 1 and, outside the disk, the value i
 * We assume we know the PSF, altough there could be better PSF estmations. In this sense, it is a non-blind deblurring algorithm.
 * The PSF is not updated while iterating (and that could be accomplished in the future).
  
-## Inverse problem part one: partial reconstruction via Deep image prior (DIP)
+## 3. Inverse problem part one: partial reconstruction via Deep image prior (DIP)
 * Input: blurred images from the dataset (training set)
 * Output: resulting images from the DIP network (only)
 
 The part one is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.
 In this sense, DIP is a learning-free method, as it depends solely on the degraded image. No sharp image from the HDC is used in this part one.  
 
-### DIP overview
+### 3.1 DIP overview
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
 where the generator weights θ are randomly initialized and z is a random vector.  
 
@@ -71,7 +70,7 @@ After this, the partial reconstructed image <img src="https://render.githubuserc
 * This results in a (third) folder of images, named 'res', with 70 partial reconstructions of the blurred images (the same number of images as the traning set). 
 
 
-### Estimating the PSF radius in part one
+### 3.2 Estimating the PSF radius in part one
 For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs:
 * We ran part one with a single degraded image (from each step), varying the PSF radius, comparing the output to the corresponding sharp image and choosing the "best" radius.
 * We limited our radius to integer numbers, but it was possible to choose non-integer numbers too.
@@ -80,13 +79,13 @@ One example can be seen in the notebook "Find_Radius-s5r8.ipynb" of this reposit
 The result is shown in the cells #16 and #17.  
 This notebook also illustrates the reconstruction part one: given the radius, reconstruct all the blurred images in the training set.
 
-## Inverse problem part two: "Autoencoder" network with bottleneck architecture
+## 4. Inverse problem part two: "Autoencoder" network with bottleneck architecture
 * Input: resulting images from the DIP network and sharp images from the dataset (training set)
 * Output: "autoencoder" network weights
 
 The second part of the reconstruction task is to train a second deep neural network with a bottleneck architecture to map the (first) DIP output to the sharp images from the HDC2021 dataset. 
 
-### Autoencoder overview
+### 4.1 Autoencoder overview
 Ideally, wee wwant the leanring machine to be able to convert the DIP output <img src="https://render.githubusercontent.com/render/math?math=x_1^* "> to the sharp image x, that is, <img src="https://render.githubusercontent.com/render/math?math=h_{\Theta}(x_1^*) = x ">,  where <img src="https://render.githubusercontent.com/render/math?math=\Theta "> are the weights of the autoencoder h.
 
 The training in part two can be described by
@@ -99,7 +98,7 @@ where <img src="https://render.githubusercontent.com/render/math?math=\hat{\Thet
 * Both part one and part two should be repeated for each blur step, saving the autoencoder weights for each of them.  
 * The two networks architectures and the training itself do not change over the different blur steps, only the PSF radius and the input images (as in the HDC2021 rules).   
 
-## Inverse problem part three: Regularized DIP
+## 5. Inverse problem part three: Regularized DIP
 
 * Input: blurred images from the dataset (test set), autoencoder weights Θ
 * Output: resulting images from the regularized DIP network 
@@ -108,7 +107,7 @@ The architecture of the deep generative network from the DIP method used in part
 The main difference is that after 1000 iterations (DIP only), the loss function will include the sum of both the DIP and the autoencoder outputs.   
 The idea is to use the autoencoder as prior information (as a regularizer), controlled by a regularization parameter.  
 
-### Regularized DIP overview
+### 5.1 Regularized DIP overview
 
 During the initial 1000 iterations, the training phase can be described as in part one. 
 After 1000 iterations, a autoencoder output term is included in the loss function, that is,  
@@ -121,11 +120,57 @@ After the user-defined number of iterations, the final reconstructed image <img 
 ### Notes:
 * In part three, a single blurred image from the test set (30 remaining images from that blur step) is reconstructed at one time, so we will not necessarily use all the test set images.
  
-# Installation, usage instructions and examples.
-All the codes we used are available in this repository. There is the main.py, the "utils" folder with several functions and the "weights" folder with the autoencoder weights.
+## 6. Installation 
+All the codes we used are available in this repository.   
+There is the main.py, the "utils" folder with several functions and the "weights" folder with the autoencoder weights.  
+There is also the notebooks to run the codes (as seen in the usage instructions section)
 
-Part one and Part two refers to the "..............py" file. It results in the autoencoder weights. 
+The main point is that we didn't "install" anything, because we did everything on Google Colab, for the following reasons:
+* Because of the COVI19 pandemic, out university is closed, so it allow us to work together online.
+* In this context, we are using our personal notebooks, but they have basic specifications. Even the free Colab account is more powerful (although there are usage limits). 
+* It is necessary to have a compatible Python CUDA for GPU support and Google Colab allow us to access them. 
+
+In the following table, there is a small list of the main packages used (with "import" functions, for example) and it is important to note that:
+* The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder.  
+* We understand that not all of them are necessary running the code outside Google Colab, but in fact we did not run the code locally. 
+* It should be possible to create, for example, an Anaconda enviroment, with this requirements.txt, but we didn't do it.  
+* It would be like creating google colab in a environment, but, with more than 400 packages, conflicts between them could happen.
+
+| Package  | Version | Package  | Version |
+| ------------- | ------------- | ------------- | ------------- |
+| Python  | 3.7.12  |  re* | 2.2.1  | 
+| argparse  | 1.1  |  scipy | 1.4.1  | 
+| cv2  | 4.1.2  | skimage | 0.16.2  | 
+| joblib | 1.0.1 | sklearn | 0.22.2  | 
+| Keras | 2.6.0 | tensorflow | 2.6.0  |
+| matplotlib | 3.2.2  | tqdm | 4.62.2  | 
+| numpy | 1.19.5  | torch | 1.9.0  | 
+| Pillow | 7.1.2  | torchvision | 0.10.0  | 
+| pytesseract | 0.3.8  | | |
+
+*or regex
+
+That being said, we can share the Google Colab URLs to execute the codes:  (INSERIR URL)
+
+### 6.1 External codes
+We need to mention that we adapted functions from the following two papers:
+1. From the original "Deep Image prior" paper[[3]](#3)
+Available at https://github.com/DmitryUlyanov/deep-image-prior/, under Apache License 2.0
+The particular requisites are shown here: https://github.com/DmitryUlyanov/deep-image-prior/blob/master/README.md
+1. From a derivative work: Neural Blind Deconvolution Using Deep Priors [[4]](#4)
+https://github.com/csdwren/SelfDeblur (no copyright disclaimer was found)
+The particular requisites are shown here: https://github.com/csdwren/SelfDeblur/blob/master/README.md
+
+Although these toolboxes have their own prerequisites, the requirements.txt includes the ones we need. 
+
+## 7. Usage instructions and examples.
+
+### 7.1 Part one and part two to get the autoencoder weights
+
+Part one and Part two refers to the training_example.ipynb notebook. It results in the autoencoder weights. 
 We would like to have the autoencoder weights for all the blur steps, but unfortunately it was not possible in time.
+
+### 7.2 Part three
 
 Part three, the reconstruction step (and the only part you are actually requiring), can be seen in the jupyter notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results and how to visualize them. 
 It also includes an example from the blur step 15. 
@@ -135,46 +180,7 @@ The HDC dataset can be uploaded to a google drive account, linking it to the Goo
 <img src="drive-to-colab.png" width="300">  
 (it's not recommended to upload the images directly into the Colab with a free account because of running time limitations) 
 
-## Prerequisites 
-* Python: 3.7.12
 
-Note: It is necessary to have a compatible Python CUDA for GPU support.   
-This is one of the reasons we are using the Google Colab.   
-Because of the COVI19 pandemic, out university is closed and we are using our personal notebooks, but they have basic specifications.
-Even the free Colab account is more powerful (althogh there are usage limits). 
-
-So, here is the Google Colab URL to execute the code:  (INSERIR URL)
-
-The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder.   
-Some of the versions were removed to prevent conflicts, but not all of them are necessary running the code outside Google Colab. 
-
-Main Packages:
-* argparse==1.1
-* cv2==4.1.2
-* joblib==1.0.1
-* Keras==2.6.0
-* matplotlib==3.2.2
-* numpy==1.19.5
-* Pillow==7.1.2
-* pytesseract==0.3.8
-* re==2.2.1
-* scipy==1.4.1
-* skimage==0.16.2
-* sklearn==0.22.2
-* tensorflow==2.6.0
-* tqdm==4.62.2
-* torch==1.9.0
-* torchvision==0.10.0
-
-We need to mention that we adapted functions from the following two papers:
-* From the original "Deep Image prior" paper[[3]](#3)
-Available at https://github.com/DmitryUlyanov/deep-image-prior/, under Apache License 2.0
-The particular requisites are shown here: https://github.com/DmitryUlyanov/deep-image-prior/blob/master/README.md
-* From a derivative work: Neural Blind Deconvolution Using Deep Priors [[4]](#4)
-https://github.com/csdwren/SelfDeblur (no copyright disclaimer was found)
-The particular requisites are shown here: https://github.com/csdwren/SelfDeblur/blob/master/README.md
-
-Although these toolboxes have their own prerequisites, the requirements.txt includes them. 
 
 
 ## References
