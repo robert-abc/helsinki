@@ -2,8 +2,9 @@ import tensorflow as tf
 from tensorflow.keras import Model, Input, regularizers
 from tensorflow.keras.layers import Conv2D, MaxPool2D, UpSampling2D, Add
 import numpy as np
+import cv2
 
-def get_nn(weight_path):
+def get_nn(weight_path=None):
     Input_img = Input(shape=(64,64,1))
 
     #encoding architecture
@@ -31,7 +32,9 @@ def get_nn(weight_path):
     decoded = Conv2D(1, (3, 3), padding='same',activation='relu', kernel_regularizer=regularizers.l1(10e-10))(x14)
 
     autoencoder = Model(Input_img, decoded)
-    autoencoder.load_weights(weight_path)
+
+    if(weight_path is not None):
+        autoencoder.load_weights(weight_path)
 
     return autoencoder
 
@@ -79,3 +82,31 @@ def get_dl_estim(img_x,autoencoder):
   img_rec=(img_rec-np.min(img_rec))/(np.max(img_rec)-np.min(img_rec))
 
   return img_rec
+
+def preprocess_array(img,crop_x,crop_y,binary_threshold=None):
+    img=img[0,crop_x[0]:crop_x[1],crop_y[0]:crop_y[1]]
+    img=(img-np.min(img))/(np.max(img)-np.min(img))
+
+    if(binary_threshold is not None):
+        img=img>binary_threshold
+
+    return img.astype(np.float32)
+
+def get_transform(img_fix,img_mov,n_iter=500,end_eps=1e-10):
+  warp_mode = cv2.MOTION_AFFINE
+  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT,n_iter,end_eps)
+  warp_matrix = np.eye(2, 3, dtype=np.float32)
+
+  (_, warp_matrix) = cv2.findTransformECC (img_fix,img_mov,warp_matrix,
+                                            warp_mode,criteria,None,1)
+
+  return warp_matrix
+
+def apply_transform(img,warp_matrix):
+  img_align = cv2.warpAffine(img, warp_matrix, (img.shape[1],img.shape[0]),
+                             flags=cv2.INTER_LINEAR+cv2.WARP_INVERSE_MAP,
+                             borderMode=cv2.BORDER_REPLICATE);
+
+  img_align=(img_align-np.min(img_align))/(np.max(img_align)-np.min(img_align))
+
+  return img_align

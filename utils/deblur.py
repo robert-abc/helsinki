@@ -3,7 +3,7 @@ from utils.tools import *
 from utils.dip import *
 from utils.autoencoder_tools import get_dl_estim
 
-def deblur(img_np,blur,autoencoder,dtype):
+def deblur(img_np,blur,autoencoder,dtype,num_iter=1500):
     #  Image Parameters
     width = 512 # Desired image width
     enforse_div32 = 'EXTEND' # Force image to have dims multiple of 32
@@ -14,15 +14,14 @@ def deblur(img_np,blur,autoencoder,dtype):
     OPT_OVER = 'net'
 
     # Optimization Parameters
-    LR = 0.01
     OPTIMIZER = 'adam'
     pad = 'reflection'
-    reg_noise_std= 0.03
     NET_TYPE = 'skip'
-    num_iter= 1500
     iter_lr=[200,400,600]
-    iter_dl=[1000,1100,1200,1300]
-    iter_mean=1400
+    LR = 0.01
+    reg_noise_std= 0.03
+    iter_dl=[num_iter-500,num_iter-400,num_iter-300,num_iter-200]
+    iter_mean=num_iter-100
     dl_param=[1e-2,1e-2,5e-3,5e-3]
 
     img_torch=get_torch_imgs(img_np,dtype=dtype)
@@ -63,15 +62,16 @@ def deblur(img_np,blur,autoencoder,dtype):
           out_sharp_np = torch_to_np(out_sharp)
           out_mean_deblur += out_sharp_np
 
-        if i in iter_dl:
-          out_sharp_np = torch_to_np(out_sharp)
-          img_dl = get_dl_estim(out_sharp_np[0],autoencoder)
-          img_dl=np.expand_dims(img_dl,axis=0)
-          torch_dl=np_to_torch(img_dl).type(dtype)
-          ind_dl+=1
+        if autoencoder is not None:
+            if i in iter_dl:
+              out_sharp_np = torch_to_np(out_sharp)
+              img_dl = get_dl_estim(out_sharp_np[0],autoencoder)
+              img_dl=np.expand_dims(img_dl,axis=0)
+              torch_dl=np_to_torch(img_dl).type(dtype)
+              ind_dl+=1
 
-        if i >= iter_dl[0]:
-          total_loss += dl_param[ind_dl]*(1 - ssim(torch_dl, out_sharp,dtype))
+            if i >= iter_dl[0]:
+              total_loss += dl_param[ind_dl]*(1 - ssim(torch_dl, out_sharp,dtype))
 
         total_loss.backward()
         i += 1

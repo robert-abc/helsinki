@@ -41,14 +41,14 @@ torch.backends.cudnn.benchmark = True #False #
 dtype = torch.cuda.FloatTensor #torch.FloatTensor #
 
 # Radius of PSF with respect to deblur levels
-r_list=[0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,26,0,0,0,0]
+r_list=[0,0,0,0,0,0,0,0,0,15,0,0,0,0,0,26,31,0,0,0]
 radius=r_list[args.deblur_level]
 
 # Model of blur
 blur = tools.Blur(n_planes=1,kernel_type='circle',sigma=radius).type(dtype)
 
 # Autoencoder
-autoencoder=autoencoder_tools.get_nn(os.path.join('weights','binary_64_mse.h5'))
+autoencoder=autoencoder_tools.get_nn(os.path.join('weights','weights_15.h5'))
 
 for img in img_names:
     path_in=os.path.join(args.input_path,img)
