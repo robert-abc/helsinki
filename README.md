@@ -14,7 +14,9 @@ This deblurring work is to join the Helsinki Deblur Challenge 2021 (HDC2021) [[1
 URL: https://www.fips.fi/HDC2021.php)  
 The results will be evaluated in out-of-focus text deblurring images, although it is expected to be a general-purpose deblurring algorithm.  
 
-### Dataset from the HDC2021 (https://zenodo.org/record/4916176)
+
+
+## Dataset from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs.  
 There are 2 different text fonts (Times New Roman and Verdana), resulting in 4000 images.
 There is also the point, the horizontal, and the vertical spread functions of each blur.  
@@ -29,7 +31,7 @@ The images are .TIFF files. We assume the input images are .TIFF files in our co
 Image size: 2360 x 1460 pixels
 For a single step, the training set includes 70 images (70%) and the test set the 30 remaining images (30%). 
 
-### Forward problem
+## Forward problem
 We consider the forward problem, i.e., to blur the image, as 
 <img src="https://render.githubusercontent.com/render/math?math=y = k*x,">  
 where x is the sharp image, k is the point spread function (PSF), and y is the resulting blurred image.  
@@ -37,20 +39,16 @@ Although there is visible noise in both sharp and blurred images from the HDC da
 
 To simulate the out-of-focus blur the PSF is considered as a disk, where the only parameter is the disk radius.  
 Inside the disk, the corresponding value is 1 and, outside the disk, the value is 0 [[2]](#2).  
-For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.  
-
-
-
 
 The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
 
 It should be noted that we used no blurring matrix because it would be computationally expensive. All the blurring are computed directly with the PSF.
-It is a non-blind deblurring algorithm, the PSF is not updated while iterating, assuming the PSF is known.
+It is a non-blind deblurring algorithm and the PSF is not updated while iterating.
  
-### Inverse problem 
+## Inverse problem 
 There are three parts to reconstruct the sharp images.
 
-#### Reconstruction part one: Deep image prior (DIP)
+### Reconstruction part one: Deep image prior (DIP)
 * Input: blurred images from the dataset (training set)
 * Output: resulting images from the DIP network (only)
 
@@ -69,7 +67,11 @@ After this, the partial reconstructed image <img src="https://render.githubuserc
 
 This results in a (third) folder of images, named 'res', with partial reconstructions of the blurred images, with the same number of images as the traning set. 
 
-Note: To estimate visually the PSF, as described in the forward problem section, we executed this part one with a single degraded image (from each step), varying the PSF radius and comparing the output to the corresponding sharp image. 
+### Estimating the PSF radius
+For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs.  
+We executed this part one with a single degraded image (from each step), varying the PSF radius and comparing the output to the corresponding sharp image.
+One exemple is in the file "Find_Radius-s5r8.ipynb" of this repository, where s5 denotes step 05 and r8 denotes radius = 8.
+
 
 #### Reconstruction part two: "Autoencoder" network with bottleneck architecture
 * Input: resulting images from the DIP network and sharp images from the dataset (training set)
