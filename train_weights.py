@@ -11,6 +11,7 @@ from utils import deblur
 from sklearn import feature_extraction
 import torch
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+import tensorflow as tf
 
 # Get input arguments
 parser = argparse.ArgumentParser(description=
@@ -85,14 +86,14 @@ if(args.in_dip_path is None):
 else:
     out_dip_names=sorted(os.listdir(args.in_dip_path))
     r=re.compile(".*npy")
-    img_names=list(filter(r.match,img_names))
+    out_dip_names=list(filter(r.match,out_dip_names))
 
     for i,img in enumerate(out_dip_names):
-        path_in=os.path.join(args.args.in_dip_path,img)
+        path_in=os.path.join(args.in_dip_path,img)
         arr_x[i]=autoencoder_tools.preprocess_array(np.load(path_in),crop_x,crop_y)
 
 # Spatial normalization of images
-for i in range(len(x_names)):
+for i in range(len(img_names)):
   warp_matrix=autoencoder_tools.get_transform(arr_x[i],arr_y_orig[i])
   arr_y[i]=autoencoder_tools.apply_transform(arr_y_orig[i],warp_matrix)
 
@@ -128,8 +129,6 @@ autoencoder=autoencoder_tools.get_nn()
 autoencoder.compile(optimizer='adam', loss=mse)
 early_stopper = EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=3, verbose=1, mode='min')
 model_checkpoint = ModelCheckpoint(join(args.weight_path,'weights_'+str(args.blur_level)+'.h5'),save_best_only=True)
-
-os.path.join('weights','binary_64_mse.h5')
 
 history = autoencoder.fit(train_x,train_y,
             epochs=100,
