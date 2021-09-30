@@ -75,7 +75,7 @@ For each blur step (from 0 to 19), the PSF radius was visually estimated from th
 * We ran part one with a single degraded image (from each step), varying the PSF radius, comparing the output to the corresponding sharp image, and choosing the "best" radius.
 * We limited our radius to integer numbers, but it was possible to choose non-integer numbers too.
 
-One example can be seen in the notebook "Find_Radius-s5r8.ipynb" of this repository, where s5 denotes step 05 and r8 denotes radius = 8.   
+One example can be seen in the notebook  <a href="Find_Radius-s5r8.ipynb">Find_Radius-s5r8</a> of this repository, where s5 denotes step 05 and r8 denotes radius = 8.   
 The result is shown in cells #16 and #17.  
 This notebook also illustrates the reconstruction part one: given the radius, reconstruct all the blurred images in the training set.
 
@@ -189,7 +189,7 @@ Regarding the autoencoder
 
 Regarding the obtained autoencoder weights:
 * We would like to have the autoencoder weights for all the blur steps, but unfortunately it was not possible in time (as Google Colab limits GPU usage).
-* What we actually have in this release (folder "weights") are the autoencoder weights of the blur steps &#x1F536;&#x1F536;&#x1F536; 15, 19  &#x1F536;&#x1F536;&#x1F536;.
+* What we actually have in this release (folder "weights") are the autoencoder weights of the blur steps 6, 15, and 19.
 * We are not sure if HDC2021 will train the autoencoder for the blur steps we didn't (parts one and two) or if it is expected just the reconstruction itself (part three). 
 * If we had all the autoencoder weights in the folder "weights", the algorithm would automatically select the weights corresponding to the blur step. 
 * We also tested using the autoencoder trained in another blur step level. It worked in some cases, but we didn't have exhaustive testing of this option and it is harder to justify how to choose the (another) blur step selected. 
