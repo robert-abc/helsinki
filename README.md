@@ -164,13 +164,15 @@ Although these toolboxes have their own prerequisites, the requirements.txt incl
 
 ### 6.2. Usage instructions
 
-We created two notebooks to run with Google Colab. In both, first we clone the private git repository.  
+We created two notebooks to run with Google Colab, so here is a little setup to them both. 
+
+First we clone the private git repository.  
 Next, it's not recommended to upload the images directly into the Colab with a free account because of running time limitations. 
 So, HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via "mount drive"  
 <img src="drive-to-colab.png" width="300">  
 Google Colab will ask for a verification code and then it is possible to access Google Drive directly from the Google Colab.
 
-After this little setup, it is possible to execute the rest of the code.
+After this, it is possible to execute the rest of the code.
 
 We also share Google Colab URLs to execute the codes: &#x1F536; &#x1F536; &#x1F536;  (INSERIR URL) &#x1F536; &#x1F536; &#x1F536;
 
