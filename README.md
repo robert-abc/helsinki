@@ -31,7 +31,7 @@ The images are separated into folders:
 * The input image size: 2360 x 1460 pixels.
 * Expected output image size: 2360 x 1460 pixels.
 
-## 2. Hypothesis of the forward problem 
+## 2. Forward problem 
 We consider the forward problem, i.e., to blur the image, as 
 <img src="https://render.githubusercontent.com/render/math?math=y = k*x,">  
 where x is the sharp image, k is the point spread function (PSF), and y is the resulting blurred image.  
@@ -120,7 +120,8 @@ After the user-defined number of iterations, the final reconstructed image <img 
 ### Notes:
 * In part three, a single blurred image from the test set (30 remaining images from that blur step) is reconstructed at one time, so we will not necessarily use all the test set images.
  
-## 6. Installation 
+## 6. Installation, usage instructions and examples
+
 All the codes we used are available in this repository.   
 There is also jupyter notebooks to run the codes (as seen in the usage instructions section)
 
@@ -149,8 +150,6 @@ In the following table, there is a small list of the main packages used (with "i
 
 *or regex
 
-&#x1F536; That being said, we can share examples of Google Colab URLs to execute the codes:  (INSERIR URL)
-
 ### 6.1 External codes
 We need to mention that we adapted functions from the following two papers:
 1. From the original "Deep Image prior" paper[[3]](#3)
@@ -162,14 +161,15 @@ The particular requisites are shown here: https://github.com/csdwren/SelfDeblur/
 
 Although these toolboxes have their own prerequisites, the requirements.txt includes the ones we need. 
 
-## 7. Usage instructions and examples.
+### 6.2. Usage instructions and examples.
 
-### 7.1 Part one and part two to get the autoencoder weights
+After explainig our need of Google Colab, we created two notebooks an share examples of Google Colab URLs to execute the codes:  (INSERIR URL)
+#### 6.2.1 Part one and part two to get the autoencoder weights
 
 Part one and Part two refers to the training_example.ipynb notebook. It results in the autoencoder weights. 
 We would like to have the autoencoder weights for all the blur steps, but unfortunately it was not possible in time.
 
-### 7.2 Part three
+#### 6.2.3 Part three
 
 Part three, the reconstruction step (and the only part you are actually requiring), can be seen in the jupyter notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results and how to visualize them. 
 It also includes an example from the blur step 15. 
