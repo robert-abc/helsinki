@@ -26,57 +26,56 @@ The images are separated into folders:
 
 ### Notes:
 *  Each image has its ground-truth text.
-* There is also the point, the horizontal, and the vertical spread functions of each blur.  
-* All the images are .TIFF files. We assume the input images are .TIFF files in our code, but the user can define another file extension.  
+* There are also the point, the horizontal, and the vertical spread functions of each blur.  
+* All the images from the dataset are .TIFF files which we assume is the case in our code, but the user can define another file extension.  
 * The input image size: 2360 x 1460 pixels.
 * Expected output image size: 2360 x 1460 pixels.
 
 ## 2. Forward problem 
 We consider the forward problem, i.e., to blur the image, as 
 <img src="https://render.githubusercontent.com/render/math?math=y = k*x,">  
-where x is the sharp image, k is the point spread function (PSF), and y is the resulting blurred image.  
-Although there is visible noise in both sharp and blurred images from the HDC dataset, no explicit noise model (e.g. gaussian additive noise) was considered.    
+where x is the sharp image, k is the point spread function (PSF), and y is the resulting blurred image [[2]](#2).  
+Although there is visible noise in both sharp and blurred images from the HDC dataset, no explicit noise model (e.g. Gaussian additive noise) was considered.    
 
-The PSF is considered as a disk to simulate the out-of-focus blur , where the only parameter is the disk radius.  
-Inside the disk, the corresponding value is 1 and, outside the disk, the value is 0 [[2]](#2).  
+The PSF is considered as a disk to simulate the out-of-focus blur, where the only parameter is the disk radius.  
+Inside the disk, the corresponding value is 1 and, outside the disk, the value is 0 [[3]](#3).  
 
 ### Notes:
 * The Blur category number is one of the three input arguments of the function. It is important to select the correct image folder and the PSF radius. 
-* All the blurring are computed by convolution with the PSF (like the conv2 function). 
-* We used no blurring matrix because it would be computationally expensive (like the Ax = b linear system). 
-* We assume we know the PSF, altough there could be better PSF estmations. In this sense, it is a non-blind deblurring algorithm.
+* All the blurring is computed by convolution with the PSF (like the conv2 function). We used no blurring matrix because it would be computationally expensive (like the Ax = b linear system). 
+* We assume we know the PSF, although there could be better PSF estimations. In this sense, it is a non-blind deblurring algorithm.
 * The PSF is not updated while iterating (and that could be accomplished in the future).
  
 ## 3. Inverse problem part one: partial reconstruction via Deep image prior (DIP)
 * Input: blurred images from the dataset (training set)
 * Output: resulting images from the DIP network (only)
 
-The part one is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.
+Part one is to fit a generator network (defined by the user) to a single degraded image, repeating for all images of the training set.
 In this sense, DIP is a learning-free method, as it depends solely on the degraded image. No sharp image from the HDC is used in this part one.  
 
 ### 3.1 DIP overview
 The deep generator network is a parametric function <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> 
 where the generator weights θ are randomly initialized and z is a random vector.  
 
-During the traning phase, the weights are adjusted to map <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> to the image x [[3]](#3), as the equation below includes the convolution with the PSF:  
+During the traning phase, the weights are adjusted to map <img src="https://render.githubusercontent.com/render/math?math=f_{\theta}(z)"> to the image x [[4]](#4), as the equation below includes the convolution with the PSF:  
 <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta}_1 = \arg\underset{\theta_1}{\min} E (f_{\theta_1}(z) * k, y) ">  
-where <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta_1} ">  are the are the weights of the generator network f after fitting to the degraded image, the  subscript 1 refers to the part one (and so on), the superscript ^ denotes an estimation, the operator * denotes convolution and E is the loss function.  
+where <img src="https://render.githubusercontent.com/render/math?math=\hat{\theta_1} ">  are the weights of the generator network f after fitting to the degraded image, the subscript 1 refers to the part one (and so on), the superscript ^ denotes an estimation, the operator * denotes convolution and E is the loss function.  
 
 After this, the partial reconstructed image <img src="https://render.githubusercontent.com/render/math?math=\hat{x_1} "> from part one is generated by the network by  
 <img src="https://render.githubusercontent.com/render/math?math=\hat{x_1} = f_{\hat{\theta_1}}(z) ">   
 
 ### Notes:
 * For a single blur step, our training set included 70 blurred images (70% of the total).
-* This results in a (third) folder of images, named 'res', with 70 partial reconstructions of the blurred images (the same number of images as the traning set). 
+* This results in a (third) folder of images, named 'res', with 70 partial reconstructions of the blurred images (the same number of images as the training set). 
 
 
 ### 3.2 Estimating the PSF radius in part one
 For each blur step (from 0 to 19), the PSF radius was visually estimated from the sharp-blurred image pairs:
-* We ran part one with a single degraded image (from each step), varying the PSF radius, comparing the output to the corresponding sharp image and choosing the "best" radius.
+* We ran part one with a single degraded image (from each step), varying the PSF radius, comparing the output to the corresponding sharp image, and choosing the "best" radius.
 * We limited our radius to integer numbers, but it was possible to choose non-integer numbers too.
 
 One example can be seen in the notebook "Find_Radius-s5r8.ipynb" of this repository, where s5 denotes step 05 and r8 denotes radius = 8.   
-The result is shown in the cells #16 and #17.  
+The result is shown in cells #16 and #17.  
 This notebook also illustrates the reconstruction part one: given the radius, reconstruct all the blurred images in the training set.
 
 ## 4. Inverse problem part two: "Autoencoder" network with bottleneck architecture
@@ -86,7 +85,7 @@ This notebook also illustrates the reconstruction part one: given the radius, re
 The second part of the reconstruction task is to train a second deep neural network with a bottleneck architecture to map the (first) DIP output to the sharp images from the HDC2021 dataset. 
 
 ### 4.1 Autoencoder overview
-Ideally, wee wwant the leanring machine to be able to convert the DIP output <img src="https://render.githubusercontent.com/render/math?math=\hat{x_1} "> to the sharp image x (of the training set.  
+Ideally, we want the learning machine to be able to convert the DIP output <img src="https://render.githubusercontent.com/render/math?math=\hat{x_1} "> to the sharp image x (of the training set.  
 That is, <img src="https://render.githubusercontent.com/render/math?math=h_{\Theta}(\hat{x_1}) = x ">,  where <img src="https://render.githubusercontent.com/render/math?math=\Theta "> are the weights of the autoencoder h.
 
 The training in part two can be described by
@@ -122,21 +121,21 @@ After the user-defined number of iterations, the final reconstructed image <img 
 * This architecture from part three remains the same in all blur steps.
 * In part three, a single blurred image from the test set (30 remaining images from that blur step) is reconstructed at one time, so we will not necessarily use all the test set images.
  
-## 6. Installation, usage instructions and examples
+## 6. Installation, usage instructions, and examples
 
 All the codes we used are available in this repository.   
-There is also jupyter notebooks to run the codes (as seen in the usage instructions section)
+There is also Jupyter Notebooks to run the codes (as seen in the usage instructions section)
 
 The main point is that we didn't "install" anything, because we did everything on Google Colab, for the following reasons:
-* Because of the COVI19 pandemic, out university is closed, so it allow us to work together online.
+* Because of the COVI19 pandemic, our university is closed, so it allows us to work together online.
 * In this context, we are using our personal notebooks, but they have basic specifications. Even the free Colab account is more powerful (although there are usage limits). 
-* It is necessary to have a compatible Python CUDA for GPU support and Google Colab allow us to access them. 
+* It is necessary to have a compatible Python CUDA for GPU support and Google Colab allows us to access them. 
 
 In the following table, there is a small list of the main packages used (with "import" functions, for example) and it is important to note that:
 * The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder.  
-* We understand that not all of them are necessary running the code outside Google Colab, but in fact we did not run the code locally (e.g. with Anaconda). 
-* It should be possible to create, for example, an Anaconda enviroment, with this requirements.txt, but we didn't do it.  
-* It would be like creating google colab in an environment, but, with more than 400 packages, conflicts between them could happen.
+* We understand that not all of them are necessary to run the code outside Google Colab. In fact, we did not run the code locally (e.g. with Anaconda). 
+* It should be possible to create, for example, an Anaconda environment, with this requirements.txt, but we didn't do it.  
+* It would be like creating Google Colab in an environment, but, with more than 400 packages, conflicts between them could happen.
 
 | Package  | Version | Package  | Version |
 | ------------- | ------------- | ------------- | ------------- |
@@ -154,10 +153,10 @@ In the following table, there is a small list of the main packages used (with "i
 
 ### 6.1 External codes
 We need to mention that we adapted functions from the following two papers:
-1. From the original "Deep Image prior" paper[[3]](#3)
+1. From the original "Deep Image prior" paper[[4]](#4)
 Available at https://github.com/DmitryUlyanov/deep-image-prior/, under Apache License 2.0
 The particular requisites are shown here: https://github.com/DmitryUlyanov/deep-image-prior/blob/master/README.md
-1. From a derivative work: Neural Blind Deconvolution Using Deep Priors [[4]](#4)
+1. From a derivative work: Neural Blind Deconvolution Using Deep Priors [[5]](#5)
 https://github.com/csdwren/SelfDeblur (no copyright disclaimer was found)
 The particular requisites are shown here: https://github.com/csdwren/SelfDeblur/blob/master/README.md
 
@@ -165,19 +164,21 @@ Although these toolboxes have their own prerequisites, the requirements.txt incl
 
 ### 6.2. Usage instructions
 
-After explainig our need of Google Colab, we created two notebooks an share examples of Google Colab URLs to execute the codes:  (INSERIR URL)
+After explaining our need for Google Colab, we created two notebooks to run with it from the beginning: to clone the private git repository, to connect with google drive folders (where the dataset is expected to be), and so on.
+
+We also share Google Colab URLs to execute the codes: &#x1F536; &#x1F536; &#x1F536;  (INSERIR URL) &#x1F536; &#x1F536; &#x1F536;
 #### 6.2.1 Part one and part two 
 
-Part one and part two refers to the training_example.ipynb notebook. It results in the autoencoder weights that are in the "weights" folder in this repository.
+Part one and part two refer to the training_example.ipynb notebook. It results in the autoencoder weights that are in the "weights" folder in this repository.
 
 Note that:
 * We would like to have the autoencoder weights for all the blur steps, but unfortunately it was not possible in time (as Google Colab limits GPU usage).
-* For a blur step, it would be better to have the corresponding autoencoder trained in that same blur step, but we also tested using the autoencoder trained in another blur step level. In some cases it worked, but we didn't had exaustive testing of this option and it is harder to justify the results
-* What we actually have in this release (folder "weights") are the autoencoder weights of the blur steps &#x1F536;&#x1F536;&#x1F536; 15, 19  &#x1F536;&#x1F536;&#x1F536;, but even after the end date (september 30) we will keep training the autoencoder in the other blur steps. That is, not changing the code itself, just generating more results with it.
+* For a blur step, it would be better to have the corresponding autoencoder trained in that same blur step, but we also tested using the autoencoder trained in another blur step level. It worked in some cases, but we didn't have exhaustive testing of this option and it is harder to justify the results
+* What we actually have in this release (folder "weights") are the autoencoder weights of the blur steps &#x1F536;&#x1F536;&#x1F536; 15, 19  &#x1F536;&#x1F536;&#x1F536;, but even after the end date (September 30) we will keep training the autoencoder in the other blur steps. That is, not changing the code itself, just generating more results with it.
 
 #### 6.2.3 Part three and reconstruction examples
 
-Part three, the reconstruction step (and the only part you are actually requiring), can be seen in the jupyter notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results and how to visualize them. 
+Part three, the reconstruction step (and the only part the challenge requires), can be seen in the Jupyter Notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results, and how to visualize them. 
 It also includes an example from the blur step 15. 
 
 
@@ -192,12 +193,15 @@ The HDC dataset can be uploaded to a google drive account, linking it to the Goo
 <a id="1">[1]</a> 
 Juvonen, Markus, et al. “Helsinki Deblur Challenge 2021: Description of Photographic Data.” ArXiv:2105.10233 [Cs, Eess], May 2021. arXiv.org, http://arxiv.org/abs/2105.10233.
 
-<a id="2">[2]</a> 
-C. P. Hansen, G. Nagy, and D. P. O’Leary. Deblurring images: matrices, spectra, and filtering. Philadelphia: SIAM, Society for Industrial and Applied Mathematics, 2006. 
+<a id="2">[2]</a>
+Mueller, Jennifer, and Samuli Siltanen. Linear and nonlinear inverse problems with practical applications. Philadelphia: Society for Industrial and Applied Mathematics, 2012. 
 
 <a id="3">[3]</a> 
+C. P. Hansen, G. Nagy, and D. P. O’Leary. Deblurring images: matrices, spectra, and filtering. Philadelphia: SIAM, Society for Industrial and Applied Mathematics, 2006. 
+
+<a id="4">[4]</a> 
 D. Ulyanov, A. Vedaldi, and V. Lempitsky.
 “Deep image prior” International Journal of Computer Vision, vol. 128, no. 7, pp.1867–1888, Mar. 2020. [Online]. Available: https://doi.org/10.1007/s11263-020-01303-4
 
-<a id="4">[4]</a> 
+<a id="5">[5]</a> 
 D. Ren, K. Zhang, Q. Wang, Q. Hu and W. Zuo, "Neural Blind Deconvolution Using Deep Priors," 2020 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR), 2020, pp. 3338-3347, doi: 10.1109/CVPR42600.2020.00340.
