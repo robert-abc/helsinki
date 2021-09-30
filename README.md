@@ -180,6 +180,7 @@ After this, it is possible to execute the rest of the code.
 * Part one and part two refer to the <a href="training_example.ipynb">training_example</a> notebook. It results in the autoencoder weights that are in the "weights" folder in this repository.
 * Part three, the reconstruction step, can be seen in the Jupyter Notebook called <a href="notebook_example.ipynb">notebook_example</a> explaining how to clone the (private) repository, how to generate the part three results, and how to visualize them. It also includes an example from the blur step 15. 
 * Part three can also be seen for blur step 19 in the <a href="notebook_example_19.ipynb">notebook_example_19</a>. We used the same network, but some parameters were different from the blur step 15 notebook. 
+* Part three can also be seen for blur step 6 in the <a href="notebook_example_6.ipynb">notebook_example_6</a>. 
 
 ## 7. Final comments 
 
