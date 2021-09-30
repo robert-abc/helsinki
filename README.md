@@ -164,9 +164,16 @@ Although these toolboxes have their own prerequisites, the requirements.txt incl
 
 ### 6.2. Usage instructions
 
-After explaining our need for Google Colab, we created two notebooks to run with it from the beginning: to clone the private git repository, to connect with google drive folders (where the dataset is expected to be), and so on.
+We created two notebooks to run with Google Colab. In both, first we clone the private git repository.  
+Next, it's not recommended to upload the images directly into the Colab with a free account because of running time limitations. 
+So, HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via "mount drive"
+<img src="drive-to-colab.png" width="300">  
+Google Colab will ask for a verification code and then it is possible to access Google Drive directly from the Google Colab.
+
+After this little setup, it is possible to execute the rest of the code.
 
 We also share Google Colab URLs to execute the codes: &#x1F536; &#x1F536; &#x1F536;  (INSERIR URL) &#x1F536; &#x1F536; &#x1F536;
+
 #### 6.2.1 Part one and part two 
 
 Part one and part two refer to the training_example.ipynb notebook. It results in the autoencoder weights that are in the "weights" folder in this repository.
@@ -180,13 +187,6 @@ Note that:
 
 Part three, the reconstruction step (and the only part the challenge requires), can be seen in the Jupyter Notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results, and how to visualize them. 
 It also includes an example from the blur step 15. 
-
-
-The HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via  
-<img src="drive-to-colab.png" width="300">  
-(it's not recommended to upload the images directly into the Colab with a free account because of running time limitations) 
-
-
 
 
 ## References
