@@ -166,7 +166,7 @@ Although these toolboxes have their own prerequisites, the requirements.txt incl
 
 ### 6.2. Usage instructions
 
-We created two notebooks to run with Google Colab, so here is a little setup to them both. 
+We created three notebooks to run with Google Colab, so here is a little setup to them both. 
 
 First we clone the private git repository.   
 it's not recommended to upload the images directly into the Colab with a free account because of running time limitations. 
@@ -179,6 +179,7 @@ After this, it is possible to execute the rest of the code.
 
 * Part one and part two refer to the training_example.ipynb notebook. It results in the autoencoder weights that are in the "weights" folder in this repository.
 * Part three, the reconstruction step, can be seen in the Jupyter Notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results, and how to visualize them. It also includes an example from the blur step 15. 
+* Part three can also be seen for blur step 19 in the notebook_example_19.ipynb. We used the same network, but some parameters were different from the blur step 15 notebook. 
 
 ## 7. Final comments 
 
