@@ -35,6 +35,9 @@ parser.add_argument('--save_intermediary', dest='out_dip_path',
 parser.add_argument('--have_intermediary', dest='in_dip_path',
                     type=str, default=None, required=False,
                     help='Path with output of DIP phase (default: None)')
+parser.add_argument('--num_iter', dest='num_iter',
+                    type=int, default=800, required=False,
+                    help='Number of iterations (default: 800)')
 
 args = parser.parse_args()
 
@@ -50,7 +53,7 @@ torch.backends.cudnn.benchmark = True #False #
 dtype = torch.cuda.FloatTensor #torch.FloatTensor #
 
 # Radius of PSF with respect to deblur levels
-r_list=[1,2,3,4,6,8,9,11,13,15,17,18,20,21,0,26,31,0,0,0]
+r_list=[1,2,3,4,6,8,9,11,13,15,17,18,20,21,22,26,31,35.5,41,44]
 radius=r_list[args.blur_level]
 
 # Model of blur
@@ -76,7 +79,7 @@ if(args.in_dip_path is None):
         path_blur=os.path.join(args.blur_path,img)
 
         img_arr,_,_=process.load_img(path_blur,width=512,enforse_div32='EXTEND')
-        img_out=deblur.deblur(img_arr,blur,None,dtype,num_iter=800)
+        img_out=deblur.deblur(img_arr,blur,None,dtype,num_iter=args.num_iter)
         arr_x[i]=autoencoder_tools.preprocess_array(img_out,crop_x,crop_y)
 
         if(args.out_dip_path is not None):

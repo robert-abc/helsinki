@@ -108,6 +108,8 @@ def load_img(fname, width, enforse_div32=None):
     img_LR_pil = img_pil.resize(LR_size, Image.ANTIALIAS)
     img_LR_np = pil_to_np(img_LR_pil)
 
+    new_size=[0,0]
+
     if enforse_div32 == 'EXTEND':
         new_size = [32 - img_LR_np.shape[1] % 32,
                     32 - img_LR_np.shape[2] % 32]
