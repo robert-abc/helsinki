@@ -122,8 +122,7 @@ After the user-defined number of iterations, the final reconstructed image <img 
  
 ## 6. Installation 
 All the codes we used are available in this repository.   
-There is the main.py, the "utils" folder with several functions and the "weights" folder with the autoencoder weights.  
-There is also the notebooks to run the codes (as seen in the usage instructions section)
+There is also jupyter notebooks to run the codes (as seen in the usage instructions section)
 
 The main point is that we didn't "install" anything, because we did everything on Google Colab, for the following reasons:
 * Because of the COVI19 pandemic, out university is closed, so it allow us to work together online.
@@ -132,9 +131,9 @@ The main point is that we didn't "install" anything, because we did everything o
 
 In the following table, there is a small list of the main packages used (with "import" functions, for example) and it is important to note that:
 * The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder.  
-* We understand that not all of them are necessary running the code outside Google Colab, but in fact we did not run the code locally. 
+* We understand that not all of them are necessary running the code outside Google Colab, but in fact we did not run the code locally (e.g. with Anaconda). 
 * It should be possible to create, for example, an Anaconda enviroment, with this requirements.txt, but we didn't do it.  
-* It would be like creating google colab in a environment, but, with more than 400 packages, conflicts between them could happen.
+* It would be like creating google colab in an environment, but, with more than 400 packages, conflicts between them could happen.
 
 | Package  | Version | Package  | Version |
 | ------------- | ------------- | ------------- | ------------- |
@@ -150,7 +149,7 @@ In the following table, there is a small list of the main packages used (with "i
 
 *or regex
 
-That being said, we can share the Google Colab URLs to execute the codes:  (INSERIR URL)
+&#x1F536; That being said, we can share examples of Google Colab URLs to execute the codes:  (INSERIR URL)
 
 ### 6.1 External codes
 We need to mention that we adapted functions from the following two papers:
