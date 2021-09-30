@@ -133,7 +133,7 @@ The main point is that we didn't "install" anything, because we did everything o
 * It is necessary to have a compatible Python CUDA for GPU support and Google Colab allows us to access them. 
 
 In the following table, there is a small list of the main packages used (with "import" functions, for example) and it is important to note that:
-* The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder.  
+* The complete list of packages in the Google Colab (obtained by pip freeze > requirements.txt) can be found in the main repository folder: <a href="requirements.txt">requirements</a>. 
 * We understand that not all of them are necessary to run the code outside Google Colab. In fact, we did not run the code locally (e.g. with Anaconda). 
 * It should be possible to create, for example, an Anaconda environment, with this requirements.txt, but we didn't do it.  
 * It would be like creating Google Colab in an environment, but, with more than 400 packages, conflicts between them could happen.
