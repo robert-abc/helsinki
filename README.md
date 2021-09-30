@@ -13,7 +13,8 @@ This deblurring work is to join the Helsinki Deblur Challenge 2021 (HDC2021) [[1
 URL: https://www.fips.fi/HDC2021.php)  
 The results will be evaluated in out-of-focus text deblurring images, although it is expected to be a general-purpose deblurring algorithm.  
 
-The main idea here is based on the deep image prior reconstruction, but, instead of using the deep image prior alone, a DNN with a bottleneck architecture (as an autoencoder) is used to help the deblurring task.
+The main idea here is based on the Deep Image Prior (DIP) reconstruction, but it uses only the degraded image.  
+So, instead of using the DIP alone, a second DNN with bottleneck architecture (as an autoencoder) is used to help the deblurring task, as it includes (prior) information from the sharp images too.
 
 ## 1. Dataset from the HDC2021 (https://zenodo.org/record/4916176)
 There are 20 steps of blur (from 0 to 19), each one including 100 sharp-blurred image pairs.  
@@ -95,8 +96,8 @@ where <img src="https://render.githubusercontent.com/render/math?math=\hat{\Thet
 ### Notes: 
 * The architecture resembles an autoencoder (this is the reason for the quotation marks on "autoencoder"), but this is not about self-supervised learning. 
 * In fact, this part two is an image-to-image translation task in a supervised fashion.  
-* Both part one and part two should be repeated for each blur step, saving the autoencoder weights for each of them.  
-* The two networks architectures and the training itself do not change over the different blur steps, only the PSF radius and the input images (to respect the HDC2021 rules).   
+* Both part one and part two should be repeated for each blur step, saving the autoencoder weights for each of them. 
+* The two networks architectures and the training itself do not change over the different blur steps, only the PSF radius and the input images (to respect the HDC2021 rules).
 
 ## 5. Inverse problem part three: Regularized DIP
 
@@ -147,9 +148,10 @@ In the following table, there is a small list of the main packages used (with "i
 | matplotlib | 3.2.2  | tqdm | 4.62.2  | 
 | numpy | 1.19.5  | torch | 1.9.0  | 
 | Pillow | 7.1.2  | torchvision | 0.10.0  | 
-| pytesseract | 0.3.8  | | |
 
 *or regex
+
+It is not part of our code, but we tested reading the resulting images with the OCR pytesseract==0.3.8. 
 
 ### 6.1 External codes
 We need to mention that we adapted functions from the following two papers:
@@ -166,30 +168,32 @@ Although these toolboxes have their own prerequisites, the requirements.txt incl
 
 We created two notebooks to run with Google Colab, so here is a little setup to them both. 
 
-First we clone the private git repository.  
-Next, it's not recommended to upload the images directly into the Colab with a free account because of running time limitations. 
-So, HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via "mount drive"  
+First we clone the private git repository.   
+it's not recommended to upload the images directly into the Colab with a free account because of running time limitations. 
+
+So, next, the HDC dataset can be uploaded to a google drive account, linking it to the Google Colab via "mount drive"  
 <img src="drive-to-colab.png" width="300">  
 Google Colab will ask for a verification code and then it is possible to access Google Drive directly from the Google Colab.
 
 After this, it is possible to execute the rest of the code.
 
-We also share Google Colab URLs to execute the codes: &#x1F536; &#x1F536; &#x1F536;  (INSERIR URL) &#x1F536; &#x1F536; &#x1F536;
+* Part one and part two refer to the training_example.ipynb notebook. It results in the autoencoder weights that are in the "weights" folder in this repository.
+* Part three, the reconstruction step, can be seen in the Jupyter Notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results, and how to visualize them. It also includes an example from the blur step 15. 
 
-#### 6.2.1 Part one and part two 
+## 7. Final comments 
 
-Part one and part two refer to the training_example.ipynb notebook. It results in the autoencoder weights that are in the "weights" folder in this repository.
+Regarding the autoencoder 
+* We didn't "optimize" the autoencoder architecture and traning phase too much, which means that maybe it is possible to get better results with lower loss values. 
+* In lower blur steps, the DIP-only deblurring (part one) may be sufficient, but is not preferable, as it uses no information of the sharp images from the dataset. 
 
-Note that:
+Regarding the obtained autoencoder weights:
 * We would like to have the autoencoder weights for all the blur steps, but unfortunately it was not possible in time (as Google Colab limits GPU usage).
-* For a blur step, it would be better to have the corresponding autoencoder trained in that same blur step, but we also tested using the autoencoder trained in another blur step level. It worked in some cases, but we didn't have exhaustive testing of this option and it is harder to justify the results
-* What we actually have in this release (folder "weights") are the autoencoder weights of the blur steps &#x1F536;&#x1F536;&#x1F536; 15, 19  &#x1F536;&#x1F536;&#x1F536;, but even after the end date (September 30) we will keep training the autoencoder in the other blur steps. That is, not changing the code itself, just generating more results with it.
-
-#### 6.2.3 Part three and reconstruction examples
-
-Part three, the reconstruction step (and the only part the challenge requires), can be seen in the Jupyter Notebook called 'notebook_example.ipynb' explaining how to clone the (private) repository, how to generate the part three results, and how to visualize them. 
-It also includes an example from the blur step 15. 
-
+* What we actually have in this release (folder "weights") are the autoencoder weights of the blur steps &#x1F536;&#x1F536;&#x1F536; 15, 19  &#x1F536;&#x1F536;&#x1F536;.
+* We are not sure if HDC2021 will train the autoencoder for the blur steps we didn't (parts one and two) or if it is expected just the reconstruction itself (part three). 
+* If we had all the autoencoder weights in the folder "weights", the algorithm would automatically select the weights corresponding to the blur step. 
+* We also tested using the autoencoder trained in another blur step level. It worked in some cases, but we didn't have exhaustive testing of this option and it is harder to justify how to choose the (another) blur step selected. 
+* In this context, the code verifies if the autoencoder weights are available (fot the right blur step). If it is not, it chooses the nearest.  
+* Even after the end date (September 30) and the submitted release, we will keep training the autoencoder in the other blur steps. That is, not changing the code itself, just generating more results with it.
 
 ## References
 <a id="1">[1]</a> 
