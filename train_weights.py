@@ -7,7 +7,8 @@ from utils import process
 from utils import deblur
 from utils import tools
 from utils import autoencoder_tools
-from utils import deblur
+from utils import dip
+from torch.utils.data import Dataset, DataLoader
 from sklearn import feature_extraction
 import torch
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -38,6 +39,9 @@ parser.add_argument('--have_intermediary', dest='in_dip_path',
 parser.add_argument('--num_iter', dest='num_iter',
                     type=int, default=800, required=False,
                     help='Number of iterations (default: 800)')
+parser.add_argument('--net_type', dest='net_type',
+                    type=str, default='autoencoder', required=False,
+                    help='Network to train (default: autoencoder)')
 
 args = parser.parse_args()
 
@@ -130,16 +134,81 @@ del arr_x
 del arr_y_orig
 del arr_y
 
-# Autoencoder
-mse = tf.keras.losses.MeanSquaredError()
-autoencoder=autoencoder_tools.get_nn()
-autoencoder.compile(optimizer='adam', loss=mse)
-early_stopper = EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=3, verbose=1, mode='min')
-model_checkpoint = ModelCheckpoint(os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.h5'),save_best_only=True)
+class ImageDataset(Dataset):
+  def __init__(self,x,y):
+    self.n_samples = x.shape[0]
 
-history = autoencoder.fit(train_x,train_y,
-            epochs=100,
-            batch_size=64,
-            steps_per_epoch=300,
-            validation_data=(valid_x, valid_y),
-            callbacks=[early_stopper, model_checkpoint])
+    self.x_data = torch.from_numpy(x).type(dtype) 
+    self.y_data = torch.from_numpy(y).type(dtype)
+
+  # support indexing such that dataset[i] can be used to get i-th sample
+  def __getitem__(self, index):
+    return self.x_data[index], self.y_data[index]
+
+  # we can call len(dataset) to return the size
+  def __len__(self):
+    return self.n_samples
+
+train_dataset = ImageDataset(train_x,train_y)
+train_loader = DataLoader(dataset=train_dataset,
+                          batch_size=32,
+                          shuffle=True,
+                          num_workers=2)
+
+if(args.net_type=='autoencoder'):
+  mse = tf.keras.losses.MeanSquaredError()
+  autoencoder=autoencoder_tools.get_nn()
+  autoencoder.compile(optimizer='adam', loss=mse)
+  early_stopper = EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=3, verbose=1, mode='min')
+  model_checkpoint = ModelCheckpoint(os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.h5'),save_best_only=True)
+
+  history = autoencoder.fit(train_x,train_y,
+              epochs=100,
+              batch_size=64,
+              steps_per_epoch=300,
+              validation_data=(valid_x, valid_y),
+              callbacks=[early_stopper, model_checkpoint])
+              
+elif(args.net_type=='skip'):
+  # Optimization Parameters
+  OPTIMIZER = 'adam'
+  pad = 'reflection'
+  NET_TYPE = 'skip'
+  input_depth = 1
+
+  deblur_net = dip.get_net(input_depth, NET_TYPE, pad,
+                  skip_n33d=128,
+                  skip_n33u=128,
+                  skip_n11=4,
+                  n_channels=1,
+                  num_scales=5,
+                  upsample_mode='bilinear').type(dtype)
+
+  n_iters = 4
+
+  loss = torch.nn.MSELoss()
+  optimizer = torch.optim.Adam(deblur_net.parameters())
+
+  # 3) Training loop
+  for epoch in range(n_iters):
+    # predict = forward pass with our model
+    for i, (x, y) in enumerate(train_loader):
+      y_predicted = deblur_net(x)
+
+      # loss
+      l = loss(y, y_predicted)
+
+      # calculate gradients = backward pass
+      l.backward()
+
+      # update weights
+      optimizer.step()
+
+      # zero the gradients after updating
+      optimizer.zero_grad()
+
+    if epoch % 10 == 0:
+      #[w, b] = deblur_net.parameters() # unpack parameters
+      print('epoch ', epoch+1, ' loss = ', l)
+else:
+  pass
