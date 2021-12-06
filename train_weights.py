@@ -11,8 +11,8 @@ from utils import dip
 from torch.utils.data import Dataset, DataLoader
 from sklearn import feature_extraction
 import torch
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-import tensorflow as tf
+#from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+#import tensorflow as tf
 
 # Get input arguments
 parser = argparse.ArgumentParser(description=
@@ -156,9 +156,8 @@ class ImageDataset(Dataset):
 
 train_dataset = ImageDataset(train_x,train_y)
 train_loader = DataLoader(dataset=train_dataset,
-                          batch_size=32,
-                          shuffle=True,
-                          num_workers=2)
+                          batch_size=128,
+                          shuffle=True)
 
 if(args.net_type=='autoencoder'):
   mse = tf.keras.losses.MeanSquaredError()
@@ -213,5 +212,7 @@ elif(args.net_type=='skip'):
       if i % 1 == 0:
         #[w, b] = deblur_net.parameters() # unpack parameters
         print('epoch ', epoch,' batch ', i, ' loss = ', l)
+        
+  torch.save(deblur_net.state_dict(), os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.h5'))
 else:
   pass
