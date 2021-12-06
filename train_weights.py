@@ -209,10 +209,10 @@ elif(args.net_type=='skip'):
       # zero the gradients after updating
       optimizer.zero_grad()
 
-      if i % 1 == 0:
+      if i % 10 == 0:
         #[w, b] = deblur_net.parameters() # unpack parameters
         print('epoch ', epoch,' batch ', i, ' loss = ', l)
-        
+
   torch.save(deblur_net.state_dict(), os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.h5'))
 else:
   pass
