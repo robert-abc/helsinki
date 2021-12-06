@@ -184,13 +184,11 @@ elif(args.net_type=='skip'):
                   num_scales=5,
                   upsample_mode='bilinear').type(dtype)
 
-  n_iters = 4
-
   loss = torch.nn.MSELoss()
   optimizer = torch.optim.Adam(deblur_net.parameters())
 
   # 3) Training loop
-  for epoch in range(n_iters):
+  for epoch in range(args.num_iter):
     # predict = forward pass with our model
     for i, (x, y) in enumerate(train_loader):
       y_predicted = deblur_net(x)
