@@ -158,6 +158,10 @@ train_dataset = ImageDataset(train_x,train_y)
 train_loader = DataLoader(dataset=train_dataset,
                           batch_size=128,
                           shuffle=True)
+val_dataset = ImageDataset(valid_x,valid_y)
+val_loader = DataLoader(dataset=val_dataset,
+                          batch_size=128,
+                          shuffle=False)
 
 if(args.net_type=='autoencoder'):
   mse = tf.keras.losses.MeanSquaredError()
@@ -180,6 +184,12 @@ elif(args.net_type=='skip'):
   NET_TYPE = 'skip'
   input_depth = 1
 
+  # Parameters to avoid overfitting
+  val_loss_best = 1e8
+  loss_tol = 1e-4
+  epoch_tol = 2 
+  i_tol = 0
+
   deblur_net = dip.get_net(input_depth, NET_TYPE, pad,
                   skip_n33d=128,
                   skip_n33u=128,
@@ -194,6 +204,7 @@ elif(args.net_type=='skip'):
   # 3) Training loop
   for epoch in range(args.num_iter):
     # predict = forward pass with our model
+    deblur_net.train()
     for i, (x, y) in enumerate(train_loader):
       y_predicted = deblur_net(x)
 
@@ -211,8 +222,32 @@ elif(args.net_type=='skip'):
 
       if i % 10 == 0:
         #[w, b] = deblur_net.parameters() # unpack parameters
-        print('epoch ', epoch,' batch ', i, ' loss = ', l)
+        print('epoch ', epoch,' batch ', i, ' loss = ', l.item())
+      
+    deblur_net.eval()
+    val_loss_batchs = []
+    with torch.no_grad():
+      for i, (x, y) in enumerate(val_loader):
+        y_predicted = deblur_net(x)
 
-  torch.save(deblur_net.state_dict(), os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.h5'))
+        # loss
+        l = loss(y, y_predicted)
+        val_loss_batchs.append(l.item())
+
+      val_loss_mean = np.array(val_loss_batchs).mean()
+      print('epoch ', epoch, ' val_loss = ', val_loss_mean)
+
+      if ((val_loss_mean+loss_tol) < (val_loss_best)):
+        val_loss_best = val_loss_mean
+        best_params = deblur_net.state_dict()
+        i_tol = 0
+      else:
+        i_tol+=1
+    
+    if(i_tol == epoch_tol):
+      print("Early Stop!")
+      break
+
+  torch.save(best_params, os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.pth'))
 else:
   pass
