@@ -250,7 +250,7 @@ elif(args.net_type=='skip'):
 
   torch.save(best_params, os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.pth'))
 elif(args.net_type=='autoencoder_pytorch'):
-  model = autoencoder_tools.Autoencoder()
+  model = autoencoder_tools.Autoencoder().type(dtype)
   best_params = autoencoder_tools.train_model(model, train_loader, val_loader,
     n_epoch=args.num_iter, loss_tol=0.0001, epoch_tol=3, l1_reg=10e-10)
 
