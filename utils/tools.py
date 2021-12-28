@@ -7,22 +7,23 @@ from math import sqrt, exp
 import torch.nn.functional as F
 
 class Blur(nn.Module):
-
-    def __init__(self, n_planes, kernel_type, kernel_width=None, sigma=None):
+    def __init__(self, n_planes, kernel_type, kernel_parameter=None, kernel_width=None):
         super(Blur, self).__init__()
 
-        if kernel_type in ['gauss','circle']:
+        if kernel_type in ['gauss', 'circle']:
             kernel_type_ = kernel_type
         else:
-            assert False, 'wrong name kernel'
+            assert False, 'wrong kernel type'
+        
+        assert kernel_parameter, 'radius or sigma is not specified'
 
         if kernel_width is None:
-          kernel_width=int(2*sigma+3)
+          kernel_width = int(2*kernel_parameter + 3)
 
         if(kernel_width%2 == 0):
-          kernel_width+=1
+          kernel_width += 1
 
-        self.kernel = get_kernel(kernel_type_, kernel_width, sigma=sigma)
+        self.kernel = get_kernel(kernel_type_, kernel_width, kernel_parameter)
 
         blur = nn.Conv2d(n_planes, n_planes, kernel_size=self.kernel.shape,
                                 padding='same', padding_mode='replicate')
@@ -30,16 +31,51 @@ class Blur(nn.Module):
         blur.bias.data[:] = 0
 
         kernel_torch = torch.from_numpy(self.kernel)
+
         for i in range(n_planes):
             blur.weight.data[i, i] = kernel_torch
 
         self.blur_ = blur
 
     def forward(self, input):
-        x= input
+        return self.blur_(input)
 
-        self.x = x
-        return self.blur_(x)
+def get_kernel(kernel_type, kernel_width, kernel_parameter):
+    kernel = np.zeros([kernel_width, kernel_width])
+
+    if kernel_type == 'gauss':
+        sigma = kernel_parameter
+        center = (kernel_width + 1.)/2.
+        sigma_sq =  sigma**2
+
+        for i in range(1, kernel.shape[0] + 1):
+            for j in range(1, kernel.shape[1] + 1):
+                di = (i - center)/2.
+                dj = (j - center)/2.
+                kernel[i - 1][j - 1] = np.exp(-(di * di + dj * dj)/(2 * sigma_sq))
+                kernel[i - 1][j - 1] = kernel[i - 1][j - 1]/(2. * np.pi * sigma_sq)
+
+    elif kernel_type == 'circle':
+      r = kernel_parameter
+      n=kernel_width
+      m=kernel_width
+
+      kernel=np.ones((m,n))/(np.pi*r**2)
+
+      x=np.arange(-np.fix(n/2),np.ceil(n/2))
+      y=np.arange(-np.fix(m/2),np.ceil(m/2))
+
+      X,Y=np.meshgrid(x,y)
+
+      mask = (X)**2 + (Y)**2 < r**2
+
+      kernel = mask*kernel
+    else:
+        assert False, 'wrong kernel type'
+
+    kernel /= kernel.sum()
+
+    return kernel
 
 def get_torch_imgs(img_np,down_factors=[16,8,4],dtype=torch.cuda.FloatTensor):
   img_list=[]
@@ -57,46 +93,6 @@ def get_torch_imgs(img_np,down_factors=[16,8,4],dtype=torch.cuda.FloatTensor):
   img_list.append(np_to_torch(img_np).type(dtype))
 
   return img_list
-
-def get_kernel(kernel_type, kernel_width, sigma=None):
-    assert kernel_type in ['gauss', 'circle']
-
-    kernel = np.zeros([kernel_width, kernel_width])
-
-    if kernel_type == 'gauss':
-        assert sigma, 'sigma is not specified'
-
-        center = (kernel_width + 1.)/2.
-        sigma_sq =  sigma * sigma
-
-        for i in range(1, kernel.shape[0] + 1):
-            for j in range(1, kernel.shape[1] + 1):
-                di = (i - center)/2.
-                dj = (j - center)/2.
-                kernel[i - 1][j - 1] = np.exp(-(di * di + dj * dj)/(2 * sigma_sq))
-                kernel[i - 1][j - 1] = kernel[i - 1][j - 1]/(2. * np.pi * sigma_sq)
-
-    elif kernel_type == 'circle':
-      assert sigma, 'radius is not specified'
-
-      n=kernel_width
-      m=kernel_width
-      kernel=np.ones((m,n))/(np.pi*sigma**2)
-
-      x=np.arange(-np.fix(n/2),np.ceil(n/2))
-      y=np.arange(-np.fix(m/2),np.ceil(m/2))
-
-      X,Y=np.meshgrid(x,y)
-
-      mask = (X)**2 + (Y)**2 < sigma**2
-
-      kernel = mask*kernel
-    else:
-        assert False, 'wrong method name'
-
-    kernel /= kernel.sum()
-
-    return kernel
 
 def fill_noise(x, noise_type):
     """Fills tensor `x` with noise of type `noise_type`."""
