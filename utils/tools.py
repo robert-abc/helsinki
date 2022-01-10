@@ -5,6 +5,7 @@ import torch.nn as nn
 import cv2
 from math import sqrt, exp
 import torch.nn.functional as F
+from utils.autoencoder_tools import get_dl_estim
 
 class Blur(nn.Module):
     def __init__(self, n_planes, kernel_type, kernel_parameter=None, kernel_width=None):
@@ -76,23 +77,6 @@ def get_kernel(kernel_type, kernel_width, kernel_parameter):
     kernel /= kernel.sum()
 
     return kernel
-
-def get_torch_imgs(img_np,down_factors=[16,8,4],dtype=torch.cuda.FloatTensor):
-  img_list=[]
-
-  for df in down_factors:
-    dim=(int(img_np.shape[2]/df),int(img_np.shape[1]/df))
-
-    img_np_lr = cv2.resize(img_np[0],dim,interpolation=cv2.INTER_AREA)
-    img_np_lr = cv2.resize(img_np_lr,img_np.shape[2:0:-1],interpolation=cv2.INTER_AREA)
-    img_np_lr = np.expand_dims(img_np_lr,axis=0)
-
-    torch_lr = np_to_torch(img_np_lr).type(dtype)
-    img_list.append(torch_lr)
-
-  img_list.append(np_to_torch(img_np).type(dtype))
-
-  return img_list
 
 def fill_noise(x, noise_type):
     """Fills tensor `x` with noise of type `noise_type`."""
@@ -188,8 +172,7 @@ def _ssim(img1, img2, window, window_size, channel, size_average=True):
     else:
         return ssim_map.mean(1).mean(1).mean(1)
 
-class SSIM(
-nn.Module):
+class SSIM(nn.Module):
     def __init__(self, window_size=11, size_average=True):
         super(SSIM, self).__init__()
         self.window_size = window_size
@@ -224,38 +207,58 @@ def ssim(img1, img2, dtype, window_size=11, size_average=True):
 
     return _ssim(img1, img2, window, window_size, channel, size_average)
 
-def optimize(optimizer_type, parameters, closure, LR, num_iter):
-    """Runs optimization loop.
-    Args:
-        optimizer_type: 'LBFGS' of 'adam'
-        parameters: list of Tensors to optimize over
-        closure: function, that returns loss variable
-        LR: learning rate
-        num_iter: number of iterations
-    """
-    if optimizer_type == 'LBFGS':
-        # Do several steps with adam first
-        optimizer = torch.optim.Adam(parameters, lr=0.001)
-        for j in range(100):
-            optimizer.zero_grad()
-            closure()
-            optimizer.step()
+def deblur_image(deblur_net, deblur_input, blur, img_np,
+        OPT_OVER, num_iter, reg_noise_std, LR, iter_lr, iter_mean,
+        dtype, autoencoder, iter_dl, dl_param):
 
-        print('Starting optimization with LBFGS')
-        def closure2():
-            optimizer.zero_grad()
-            return closure()
-        optimizer = torch.optim.LBFGS(parameters, max_iter=num_iter, lr=LR, tolerance_grad=-1, tolerance_change=-1)
-        optimizer.step(closure2)
+    img_torch = torch.from_numpy(img_np).type(dtype)
+    out_mean_deblur = np.zeros(img_np.shape)
+    torch_dl = torch.zeros(img_torch[0].size())
 
-    elif optimizer_type == 'adam':
-        print('Starting optimization with ADAM')
-        optimizer = torch.optim.Adam(parameters, lr=LR)
+    ind_dl=-1
 
-        for j in range(num_iter):
-            optimizer.zero_grad()
-            closure()
-            optimizer.step()
+    net_input_saved = deblur_input.detach().clone()
+    noise = deblur_input.detach().clone()
 
-    else:
-        assert False
+    p = get_params(OPT_OVER,deblur_net,deblur_input,blur)
+
+    optimizer = torch.optim.Adam(p, lr=LR)
+
+    for i in range(num_iter):
+        optimizer.zero_grad()
+
+        if reg_noise_std > 0:
+            deblur_input = net_input_saved + (noise.normal_() * reg_noise_std)
+        else:
+            deblur_input = net_input_saved
+
+        out_sharp = deblur_net(deblur_input)
+
+        if autoencoder is not None:
+            if i in iter_dl:
+                if i == iter_dl[0]:
+                    out_sharp_np = torch_to_np(out_sharp)
+                else:
+                    out_sharp_np = torch_to_np((1-dl_param[ind_dl])*out_sharp+dl_param[ind_dl]*torch_dl)
+
+                img_dl = get_dl_estim(out_sharp_np[0], autoencoder, dtype)
+                img_dl = np.expand_dims(img_dl, axis=0)
+                torch_dl = np_to_torch(img_dl).type(dtype)
+                ind_dl += 1
+
+            if i >= iter_dl[0]:
+              out_sharp = ((1-dl_param[ind_dl])*out_sharp+dl_param[ind_dl]*torch_dl)
+
+        out_blur = blur(out_sharp)
+
+        total_loss = 1 - ssim(out_blur, img_torch, dtype)
+
+        if i >= iter_mean:
+          out_sharp_np = torch_to_np(out_sharp)
+          out_mean_deblur += out_sharp_np
+
+        total_loss.backward()
+
+        optimizer.step()
+    
+    return out_mean_deblur

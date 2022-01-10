@@ -1,6 +1,3 @@
-import tensorflow as tf
-from tensorflow.keras import Model, Input, regularizers
-from tensorflow.keras.layers import Conv2D, MaxPool2D, UpSampling2D, Add
 import numpy as np
 import cv2
 
@@ -11,7 +8,7 @@ import torch
 # print(summary(Autoencoder(), torch.zeros((1, 1, 64, 64)), show_input=False))
 
 class Autoencoder(nn.Module):
-  def __init__(self, input_channel=1, pad_m='replicate'):
+  def __init__(self, input_channel=1, pad_m='zeros'):
     super(Autoencoder, self).__init__()
     self.c1 = nn.Conv2d(input_channel, 64, 3, padding='same', padding_mode=pad_m)
     self.c2 = nn.Conv2d(64, 64, 3, padding='same', padding_mode=pad_m)
@@ -120,44 +117,7 @@ def train_model(model, train_loader, valid_loader,
   
   return best_params
 
-# def get_nn_pt(weight_path=None):
-
-
-def get_nn(weight_path=None):
-    Input_img = Input(shape=(64,64,1))
-
-    #encoding architecture
-    x1 = Conv2D(64, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(Input_img)
-    x2 = Conv2D(64, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(x1)
-    x3 = MaxPool2D(padding='same')(x2)
-
-    x4 = Conv2D(128, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(x3)
-    x5 = Conv2D(128, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(x4)
-    x6 = MaxPool2D(padding='same')(x5)
-
-    encoded = Conv2D(256, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(x6)
-
-    # decoding architecture
-    x7 = UpSampling2D()(encoded)
-    x8 = Conv2D(128, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(x7)
-    x9 = Conv2D(128, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(x8)
-    x10 = Add()([x5, x9])
-
-    x11 = UpSampling2D()(x10)
-    x12 = Conv2D(64, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(x11)
-    x13 = Conv2D(64, (3, 3), activation='relu', padding='same', kernel_regularizer=regularizers.l1(10e-10))(x12)
-    x14 = Add()([x2, x13])
-
-    decoded = Conv2D(1, (3, 3), padding='same',activation='relu', kernel_regularizer=regularizers.l1(10e-10))(x14)
-
-    autoencoder = Model(Input_img, decoded)
-
-    if(weight_path is not None):
-        autoencoder.load_weights(weight_path)
-
-    return autoencoder
-
-def get_dl_estim(img_x,autoencoder):
+def get_dl_estim(img_x, model, dtype):
   ind_x=np.arange(0,img_x.shape[0]+1,64)
   ind_y=np.arange(0,img_x.shape[1]+1,64)
 
@@ -188,8 +148,10 @@ def get_dl_estim(img_x,autoencoder):
 
       patch_test[i*Py+j,:,:]=patch_extract
 
-  preds=autoencoder.predict(patch_test)
-  preds=np.squeeze(preds)
+  patch_test_torch = torch.from_numpy(np.expand_dims(patch_test,1)).type(dtype)
+  preds_torch = model(patch_test_torch)
+  preds = preds_torch.detach().cpu().numpy()
+  preds = np.squeeze(preds)
 
   img_rec=np.zeros((64*Px,64*Py))
 
