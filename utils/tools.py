@@ -6,6 +6,7 @@ import cv2
 from math import sqrt, exp
 import torch.nn.functional as F
 from utils.autoencoder_tools import get_dl_estim
+import numpy as np
 
 class Blur(nn.Module):
     def __init__(self, n_planes, kernel_type, kernel_parameter=None, kernel_width=None):
@@ -211,7 +212,7 @@ def deblur_image(deblur_net, deblur_input, blur, img_np,
         OPT_OVER, num_iter, reg_noise_std, LR, iter_lr, iter_mean,
         dtype, autoencoder, iter_dl, dl_param):
 
-    img_torch = torch.from_numpy(img_np).type(dtype)
+    img_torch = torch.from_numpy(np.expand_dims(img_np,0)).type(dtype)
     out_mean_deblur = np.zeros(img_np.shape)
     torch_dl = torch.zeros(img_torch[0].size())
 
