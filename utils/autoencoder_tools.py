@@ -70,7 +70,7 @@ def train_model(model, train_loader, valid_loader,
       y_predicted = model(x)
 
       # loss
-      l = loss(y, y_predicted)
+      l = loss(y_predicted, y)
 
       if(l1_reg > 0):
         param_layers = [lp.view(-1) for lp in model.parameters()]
