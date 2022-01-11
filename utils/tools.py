@@ -210,7 +210,7 @@ def ssim(img1, img2, dtype, window_size=11, size_average=True):
 
 def deblur_image(deblur_net, deblur_input, blur, img_np,
         OPT_OVER, num_iter, reg_noise_std, LR, iter_lr, iter_mean,
-        dtype, autoencoder, iter_dl, dl_param):
+        dtype, autoencoder, iter_dl, dl_param, method=0):
 
     img_torch = torch.from_numpy(np.expand_dims(img_np,0)).type(dtype)
     out_mean_deblur = np.zeros(img_np.shape)
@@ -225,41 +225,74 @@ def deblur_image(deblur_net, deblur_input, blur, img_np,
 
     optimizer = torch.optim.Adam(p, lr=LR)
 
-    for i in range(num_iter):
-        optimizer.zero_grad()
+    if method == 1:
+        for i in range(num_iter):
+            optimizer.zero_grad()
 
-        if reg_noise_std > 0:
-            deblur_input = net_input_saved + (noise.normal_() * reg_noise_std)
-        else:
-            deblur_input = net_input_saved
+            if reg_noise_std > 0:
+                deblur_input = net_input_saved + (noise.normal_() * reg_noise_std)
+            else:
+                deblur_input = net_input_saved
 
-        out_sharp = deblur_net(deblur_input)
+            out_sharp = deblur_net(deblur_input)
 
-        if autoencoder is not None:
-            if i in iter_dl:
-                if i == iter_dl[0]:
+            if autoencoder is not None:
+                if i in iter_dl:
+                    if i == iter_dl[0]:
+                        out_sharp_np = torch_to_np(out_sharp)
+                    else:
+                        out_sharp_np = torch_to_np((1-dl_param[ind_dl])*out_sharp+dl_param[ind_dl]*torch_dl)
+
+                    img_dl = get_dl_estim(out_sharp_np[0], autoencoder, dtype)
+                    img_dl = np.expand_dims(img_dl, axis=0)
+                    torch_dl = np_to_torch(img_dl).type(dtype)
+                    ind_dl += 1
+
+                if i >= iter_dl[0]:
+                    out_sharp = ((1-dl_param[ind_dl])*out_sharp+dl_param[ind_dl]*torch_dl)
+
+            out_blur = blur(out_sharp)
+
+            total_loss = 1 - ssim(out_blur, img_torch, dtype)
+
+            if i >= iter_mean:
+                out_sharp_np = torch_to_np(out_sharp)
+                out_mean_deblur += out_sharp_np
+
+            total_loss.backward()
+
+            optimizer.step()
+    else:
+        for i in range(num_iter):
+            optimizer.zero_grad()
+
+            if reg_noise_std > 0:
+                deblur_input = net_input_saved + (noise.normal_() * reg_noise_std)
+            else:
+                deblur_input = net_input_saved
+
+            out_sharp = deblur_net(deblur_input)
+            out_blur = blur(out_sharp)
+
+            total_loss = 1 - ssim(out_blur, img_torch, dtype)
+
+            if i >= iter_mean:
+                out_sharp_np = torch_to_np(out_sharp)
+                out_mean_deblur += out_sharp_np
+
+            if autoencoder is not None:
+                if i in iter_dl:
                     out_sharp_np = torch_to_np(out_sharp)
-                else:
-                    out_sharp_np = torch_to_np((1-dl_param[ind_dl])*out_sharp+dl_param[ind_dl]*torch_dl)
+                    img_dl = get_dl_estim(out_sharp_np[0],autoencoder,dtype)
+                    img_dl = np.expand_dims(img_dl,axis=0)
+                    torch_dl = np_to_torch(img_dl).type(dtype)
+                    ind_dl += 1
 
-                img_dl = get_dl_estim(out_sharp_np[0], autoencoder, dtype)
-                img_dl = np.expand_dims(img_dl, axis=0)
-                torch_dl = np_to_torch(img_dl).type(dtype)
-                ind_dl += 1
+                if i >= iter_dl[0]:
+                    total_loss += dl_param[ind_dl]*(1 - ssim(torch_dl, out_sharp, dtype))
 
-            if i >= iter_dl[0]:
-              out_sharp = ((1-dl_param[ind_dl])*out_sharp+dl_param[ind_dl]*torch_dl)
+            total_loss.backward()
 
-        out_blur = blur(out_sharp)
-
-        total_loss = 1 - ssim(out_blur, img_torch, dtype)
-
-        if i >= iter_mean:
-          out_sharp_np = torch_to_np(out_sharp)
-          out_mean_deblur += out_sharp_np
-
-        total_loss.backward()
-
-        optimizer.step()
+            optimizer.step()
     
     return out_mean_deblur

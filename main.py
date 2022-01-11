@@ -25,8 +25,8 @@ parser.add_argument('--num_iter', dest='num_iter',
                     type=int, default=1500, required=False,
                     help='Number of iterations (default: 1500)')
 parser.add_argument('--dl_param', dest='dl_param', nargs="+",
-                    type=float, default=[0.15,0.25,0.25,0.5], required=False,
-                    help='Regularization weight of autoencoder (default: [0.15,0.25,0.25,0.5])')
+                    type=float, default=[1e-2,1e-2,5e-3,5e-3], required=False,
+                    help='Regularization weight of autoencoder (default: [1e-2,1e-2,5e-3,5e-3])')
 
 args = parser.parse_args()
 
