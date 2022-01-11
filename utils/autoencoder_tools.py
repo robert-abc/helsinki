@@ -87,9 +87,12 @@ def train_model(model, train_loader, valid_loader,
       # zero the gradients after updating
       optimizer.zero_grad()
 
-      if i % 10 == 0:
+      if i % 50 == 0:
         #[w, b] = deblur_net.parameters() # unpack parameters
         print('epoch ', epoch,' batch ', i, ' loss = ', l.item())
+      
+      if i == 300:
+        break
       
     model.eval()
     val_loss_batchs = []

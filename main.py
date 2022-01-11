@@ -71,7 +71,7 @@ while(weight_lvl not in weights_names):
 
 # Autoencoder
 autoencoder=autoencoder_tools.Autoencoder().type(dtype) 
-autoencoder.load_state_dict(os.path.join('weights',weight_lvl), map_location=map_location)
+autoencoder.load_state_dict(torch.load(os.path.join('weights',weight_lvl), map_location=map_location))
 autoencoder.eval()
 
 for img in img_names:
