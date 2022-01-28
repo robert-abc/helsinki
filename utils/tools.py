@@ -53,7 +53,7 @@ class Blur(nn.Module):
 
         return output
 
-def get_kernel(kernel_type, kernel_width, kernel_parameter):
+def get_kernel(kernel_type, kernel_width, kernel_parameter, norm=True):
     kernel = np.zeros([kernel_width, kernel_width])
 
     if kernel_type == 'gauss':
@@ -86,7 +86,10 @@ def get_kernel(kernel_type, kernel_width, kernel_parameter):
     else:
         assert False, 'wrong kernel type'
 
-    kernel /= kernel.sum()
+    if(norm):
+      kernel /= kernel.sum()
+    else:
+      kernel = 1*(kernel>0)
 
     return kernel
 
