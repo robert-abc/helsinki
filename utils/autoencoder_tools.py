@@ -162,14 +162,18 @@ def get_dl_estim(img_x_orig, model, dtype, tam=64, out=0):
 
   return img_rec
 
-def preprocess_array(img,crop_x,crop_y,binary_threshold=None):
+def preprocess_array(img,crop_x=None,crop_y=None,binary_threshold=None):
+  if((crop_x is not None) and (crop_y is not None)):
     img=img[0,crop_x[0]:crop_x[1],crop_y[0]:crop_y[1]]
-    img=(img-np.min(img))/(np.max(img)-np.min(img))
+  else:
+    img = img[0]
+    
+  img=(img-np.min(img))/(np.max(img)-np.min(img))
 
-    if(binary_threshold is not None):
-        img=img>binary_threshold
+  if(binary_threshold is not None):
+      img=img>binary_threshold
 
-    return img.astype(np.float32)
+  return img.astype(np.float32)
 
 def get_transform(img_fix,img_mov,n_iter=500,end_eps=1e-10):
   warp_mode = cv2.MOTION_AFFINE

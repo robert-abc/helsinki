@@ -78,8 +78,8 @@ if(args.in_dip_path is None):
       np.save(path_out,img_out)
 else:
   #  Remove part of background
-  crop_x=[0,0]
-  crop_y=[0,0]
+  crop_x = None
+  crop_y = None
 
   # Structures to store results
   arr_x=np.zeros(len(img_names),dtype=np.object)
