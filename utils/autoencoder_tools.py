@@ -4,8 +4,6 @@ import cv2
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-# from pytorch_model_summary import summary
-# print(summary(Autoencoder(), torch.zeros((1, 1, 64, 64)), show_input=False))
 
 class Autoencoder(nn.Module):
   def __init__(self, input_channel=1, pad_m='zeros'):
@@ -91,7 +89,7 @@ def train_model(model, train_loader, valid_loader,
         #[w, b] = deblur_net.parameters() # unpack parameters
         print('epoch ', epoch,' batch ', i, ' loss = ', l.item())
       
-      if i == 300:
+      if i == 500:
         break
       
     model.eval()
@@ -120,34 +118,31 @@ def train_model(model, train_loader, valid_loader,
   
   return best_params
 
-def get_dl_estim(img_x, model, dtype):
-  ind_x=np.arange(0,img_x.shape[0]+1,64)
-  ind_y=np.arange(0,img_x.shape[1]+1,64)
+def get_dl_estim(img_x_orig, model, dtype, tam=64, out=0):
+  dim_orig = img_x_orig.shape
+  val_size = tam-2*out
+  rest=dim_orig[0]%tam
+  if(rest!=0):
+    img_x = np.pad(img_x_orig,((0,96-rest),(0,96-rest)),mode='edge')
+  else:
+    img_x = img_x_orig
 
-  if(ind_x[-1]!=img_x.shape[0]):
-    ind_x=np.concatenate((ind_x,[img_x.shape[0]]))
+  dim_expand=img_x.shape
+  img_x = (img_x-np.min(img_x))/(np.max(img_x)-np.min(img_x))
+  img_x = np.pad(img_x,((out,out),(out,out)),mode='edge')
 
-  if(ind_y[-1]!=img_x.shape[1]):
-    ind_y=np.concatenate((ind_y,[img_x.shape[1]]))
+  ind_x=np.arange(0,img_x.shape[0]-tam+1,val_size)
+  ind_y=np.arange(0,img_x.shape[1]-tam+1,val_size)
 
-  Px=len(ind_x)-1
-  Py=len(ind_y)-1
+  Px=len(ind_x)
+  Py=len(ind_y)
 
-  patch_test=np.zeros((Px*Py,64,64))
+  patch_test=np.zeros((Px*Py,tam,tam))
 
   for i in range(Px):
     for j in range(Py):
-      patch_extract=img_x[ind_x[i]:ind_x[i+1],
-                          ind_y[j]:ind_y[j+1]]
-
-      dif_x=64-patch_extract.shape[0]
-      dif_y=64-patch_extract.shape[1]
-
-      if(dif_x>0):
-        patch_extract=np.pad(patch_extract,((0,dif_x),(0,0)),mode='edge')
-
-      if(dif_y>0):
-        patch_extract=np.pad(patch_extract,((0,0),(0,dif_y)),mode='edge')
+      patch_extract=img_x[ind_x[i]:ind_x[i]+tam,
+                          ind_y[j]:ind_y[j]+tam]
 
       patch_test[i*Py+j,:,:]=patch_extract
 
@@ -156,13 +151,13 @@ def get_dl_estim(img_x, model, dtype):
   preds = preds_torch.detach().cpu().numpy()
   preds = np.squeeze(preds)
 
-  img_rec=np.zeros((64*Px,64*Py))
+  img_rec=np.zeros(dim_expand)
 
   for i in range(Px):
     for j in range(Py):
-      img_rec[i*64:i*64+64,j*64:j*64+64]=preds[i*Py+j]
+      img_rec[i*val_size:i*val_size+val_size,j*val_size:j*val_size+val_size]=preds[i*Py+j,out:tam-out,out:tam-out]
 
-  img_rec=img_rec[0:img_x.shape[0],0:img_x.shape[1]]
+  img_rec=img_rec[0:dim_orig[0],0:dim_orig[1]]
   img_rec=(img_rec-np.min(img_rec))/(np.max(img_rec)-np.min(img_rec))
 
   return img_rec

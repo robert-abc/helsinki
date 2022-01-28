@@ -17,11 +17,11 @@ def deblur(img_np, blur, autoencoder, dtype, num_iter=1500, dl_param=[1e-2,1e-2,
     OPTIMIZER = 'adam'
     pad = 'reflection'
     NET_TYPE = 'skip'
-    iter_lr = [200,400,600]
     LR = 0.01
+    LR_kernel = 1e-6
     reg_noise_std = 0.03
     iter_dl = num_iter - np.arange(len(dl_param)+1,1,-1)*100
-    iter_mean = num_iter-100
+    iter_mean = num_iter-50
 
     deblur_input = get_noise(input_depth,input_type,
                     (img_np.shape[1],img_np.shape[2])).type(dtype).detach()
@@ -35,7 +35,7 @@ def deblur(img_np, blur, autoencoder, dtype, num_iter=1500, dl_param=[1e-2,1e-2,
                   upsample_mode='bilinear').type(dtype)
     
     out_mean_deblur = deblur_image(deblur_net, deblur_input, blur, img_np,
-      OPT_OVER, num_iter, reg_noise_std, LR, iter_lr, iter_mean, dtype, autoencoder,
+      OPT_OVER, num_iter, reg_noise_std, LR, LR_kernel, iter_mean, dtype, autoencoder,
       iter_dl, dl_param)
 
     img_mean=((out_mean_deblur[0]-np.min(out_mean_deblur[0]))/(np.max(out_mean_deblur[0])-np.min(out_mean_deblur[0])))

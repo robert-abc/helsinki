@@ -20,7 +20,7 @@ class Blur(nn.Module):
         assert kernel_parameter, 'radius or sigma is not specified'
 
         if kernel_width is None:
-          kernel_width = int(2*kernel_parameter + 3)
+          kernel_width = int(2*kernel_parameter + 8) #3)
 
         if(kernel_width%2 == 0):
           kernel_width += 1
@@ -39,8 +39,19 @@ class Blur(nn.Module):
 
         self.blur_ = blur
 
+        kminus = get_kernel(kernel_type_, kernel_width, kernel_parameter-2, False)
+        kplus = get_kernel(kernel_type_, kernel_width, kernel_parameter+2, False)
+        mask = np.expand_dims(kplus-kminus, [0,1]) 
+        self.grad_mask = torch.nn.Parameter(torch.from_numpy(mask), requires_grad=False)
+        
+        self.a = nn.Parameter(torch.Tensor([0.35])) 
+        self.b = nn.Parameter(torch.Tensor([0.6])) 
+
     def forward(self, input):
-        return self.blur_(input)
+        res_conv = self.blur_(input)
+        output = self.a*res_conv + self.b
+
+        return output
 
 def get_kernel(kernel_type, kernel_width, kernel_parameter):
     kernel = np.zeros([kernel_width, kernel_width])
@@ -125,21 +136,25 @@ def get_params(opt_over, net, net_input, blur=None):
     '''
     opt_over_list = opt_over.split(',')
     params = []
+    params_reduc = []
 
     for opt in opt_over_list:
-
         if opt == 'net':
             params += [x for x in net.parameters() ]
         elif  opt=='blur':
             assert blur is not None
-            params = [x for x in blur.parameters()]
+            for x in blur.parameters():
+              if(len(x.size())==4 and x.requires_grad):
+                params_reduc += [x]
+              else:
+                params += [x]
         elif opt == 'input':
             net_input.requires_grad = True
             params += [net_input]
         else:
             assert False, 'what is it?'
 
-    return params
+    return params, params_reduc
 
 def gaussian(window_size, sigma):
     gauss = torch.Tensor([exp(-(x - window_size // 2) ** 2 / float(2 * sigma ** 2)) for x in range(window_size)])
@@ -209,7 +224,7 @@ def ssim(img1, img2, dtype, window_size=11, size_average=True):
     return _ssim(img1, img2, window, window_size, channel, size_average)
 
 def deblur_image(deblur_net, deblur_input, blur, img_np,
-        OPT_OVER, num_iter, reg_noise_std, LR, iter_lr, iter_mean,
+        OPT_OVER, num_iter, reg_noise_std, LR, LR_kernel, iter_mean,
         dtype, autoencoder, iter_dl, dl_param, method=0):
 
     img_torch = torch.from_numpy(np.expand_dims(img_np,0)).type(dtype)
@@ -221,9 +236,9 @@ def deblur_image(deblur_net, deblur_input, blur, img_np,
     net_input_saved = deblur_input.detach().clone()
     noise = deblur_input.detach().clone()
 
-    p = get_params(OPT_OVER,deblur_net,deblur_input,blur)
-
-    optimizer = torch.optim.Adam(p, lr=LR)
+    p, p_kernel = get_params(OPT_OVER,deblur_net,deblur_input,blur)
+    optimizer = torch.optim.Adam([{'params':p}, {'params': p_kernel, 'lr': LR_kernel}], lr=LR)
+    mse_loss = torch.nn.MSELoss()
 
     if method == 1:
         for i in range(num_iter):
@@ -283,15 +298,17 @@ def deblur_image(deblur_net, deblur_input, blur, img_np,
             if autoencoder is not None:
                 if i in iter_dl:
                     out_sharp_np = torch_to_np(out_sharp)
-                    img_dl = get_dl_estim(out_sharp_np[0],autoencoder,dtype)
+                    img_dl = get_dl_estim(out_sharp_np[0],autoencoder,dtype,tam=96,out=16)
                     img_dl = np.expand_dims(img_dl,axis=0)
                     torch_dl = np_to_torch(img_dl).type(dtype)
                     ind_dl += 1
 
                 if i >= iter_dl[0]:
-                    total_loss += dl_param[ind_dl]*(1 - ssim(torch_dl, out_sharp, dtype))
+                    total_loss += dl_param[ind_dl]*mse_loss(out_sharp, torch_dl) #(1 - ssim(torch_dl, out_sharp, dtype))
 
             total_loss.backward()
+
+            blur.blur_.weight.grad *= blur.grad_mask
 
             optimizer.step()
     
