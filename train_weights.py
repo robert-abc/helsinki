@@ -16,13 +16,13 @@ import torch
 parser = argparse.ArgumentParser(description=
             'Get weights to be used in the autoencoder for deblurring.')
 
-parser.add_argument('blur_path', type=str,
+parser.add_argument('blur_path', type=str, nargs="+",
                     help='Path with images to be deblurred')
-parser.add_argument('sharp_path', type=str,
+parser.add_argument('sharp_path', type=str, nargs="+",
                     help='Path with sharp images')
 parser.add_argument('weight_path', type=str,
                     help='Path to save weight')
-parser.add_argument('blur_level', type=int,
+parser.add_argument('--blur_level', type=int, nargs="+", required = False,
                     choices=range(0,20), metavar='[0-19]',
                     help='Level of blur')
 parser.add_argument('--extension', dest='extension',
@@ -31,7 +31,7 @@ parser.add_argument('--extension', dest='extension',
 parser.add_argument('--save_intermediary', dest='out_dip_path',
                     type=str, default=None, required=False,
                     help='Path to save output of DIP phase (default: None)')
-parser.add_argument('--have_intermediary', dest='in_dip_path',
+parser.add_argument('--have_intermediary', dest='in_dip_path',  nargs="+",
                     type=str, default=None, required=False,
                     help='Path with output of DIP phase (default: None)')
 parser.add_argument('--num_iter', dest='num_iter',
@@ -44,9 +44,17 @@ parser.add_argument('--train_iter', dest='train_iter',
 args = parser.parse_args()
 
 # Get image names
-img_names=sorted(os.listdir(args.blur_path))
-r=re.compile(".*"+args.extension)
-img_names=list(filter(r.match,img_names))
+ind_path = []
+img_names = []
+
+for i, base_path in enumerate(args.blur_path):
+  img_names_i=sorted(os.listdir(args.blur_path[i]))
+  r=re.compile(".*"+args.extension)
+  img_names_i = list(filter(r.match,img_names_i))
+  ind_path_i = np.ones(len(img_names_i),dtype=int)*i
+  img_names = [*img_names, *img_names_i]
+  ind_path = [*ind_path, *ind_path_i]
+
 print(f"{len(img_names)} images were found.")
 
 # Use of GPU
@@ -62,18 +70,18 @@ else:
 if(args.in_dip_path is None):
   # Radius of PSF with respect to deblur levels
   r_list=[1,2,3,4,6,8,9,11,13,15,17,18,20,21,22,26,31,35.5,41,44]
-  radius=r_list[args.blur_level]
+  radius=r_list[args.blur_level[ind_path[i]]]
 
   # Model of blur
   blur = tools.Blur(n_planes=1,kernel_type='circle', kernel_parameter=radius).type(dtype)
 
   for i,img in enumerate(img_names):
-      path_blur=os.path.join(args.blur_path,img)
+      path_blur=os.path.join(args.blur_path[ind_path[i]],img)
 
       img_arr,_,_=process.load_img(path_blur,width=512,enforse_div32='EXTEND')
       img_out=deblur.deblur(img_arr,blur,None,dtype,num_iter=args.num_iter)
 
-      path_out=os.path.join(args.out_dip_path,img)
+      path_out=os.path.join(args.out_dip_path[ind_path[i]],img)
       path_out=path_out[0:-3]+'npy'
       np.save(path_out,img_out)
 else:
@@ -82,22 +90,22 @@ else:
   crop_y = None
 
   # Structures to store results
-  arr_x=np.zeros(len(img_names),dtype=np.object)
-  arr_y_orig=np.zeros(len(img_names),dtype=np.object)
-  arr_y=np.zeros(len(img_names),dtype=np.object)
+  arr_x=np.zeros(len(img_names),dtype=object)
+  arr_y_orig=np.zeros(len(img_names),dtype=object)
+  arr_y=np.zeros(len(img_names),dtype=object)
 
   for i,img in enumerate(img_names):
-    path_sharp=os.path.join(args.sharp_path,img)
+    path_sharp=os.path.join(args.sharp_path[ind_path[i]],img)
 
     img_arr,_,_=process.load_img(path_sharp,width=512,enforse_div32='EXTEND')
     arr_y_orig[i]=autoencoder_tools.preprocess_array(img_arr,crop_x,crop_y,binary_threshold=0.5)
 
-  out_dip_names=sorted(os.listdir(args.in_dip_path))
-  r=re.compile(".*npy")
-  out_dip_names=list(filter(r.match,out_dip_names))
+  #out_dip_names=sorted(os.listdir(args.in_dip_path))
+  #r=re.compile(".*npy")
+  #out_dip_names=list(filter(r.match,out_dip_names))
 
-  for i,img in enumerate(out_dip_names):
-    path_in=os.path.join(args.in_dip_path,img)
+  for i,img in enumerate(img_names):
+    path_in=os.path.join(args.in_dip_path[ind_path[i]],img)
     arr_x[i]=autoencoder_tools.preprocess_array(np.load(path_in),crop_x,crop_y)
 
   # Spatial normalization of images
@@ -106,7 +114,7 @@ else:
     arr_y[i]=autoencoder_tools.apply_transform(arr_y_orig[i],warp_matrix)
 
   # Patch Extraction
-  patch_p_img=1000
+  patch_p_img=500
   patch_size=96
 
   train_x=[]
