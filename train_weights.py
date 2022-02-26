@@ -105,12 +105,12 @@ else:
   #out_dip_names=list(filter(r.match,out_dip_names))
 
   for i,img in enumerate(img_names):
+    img = img[0:-3]+'npy'
     path_in=os.path.join(args.in_dip_path[ind_path[i]],img)
     arr_x[i]=autoencoder_tools.preprocess_array(np.load(path_in),crop_x,crop_y)
 
   # Spatial normalization of images
   for i in range(len(img_names)):
-    img = img[0:-3]+'npy'
     warp_matrix=autoencoder_tools.get_transform(arr_x[i],arr_y_orig[i])
     arr_y[i]=autoencoder_tools.apply_transform(arr_y_orig[i],warp_matrix)
 
