@@ -115,21 +115,32 @@ else:
     arr_y[i]=autoencoder_tools.apply_transform(arr_y_orig[i],warp_matrix)
 
   # Patch Extraction
-  patch_p_img=500
+  patch_p_img=1000
   patch_size=96
+
+  num_types = np.max(ind_path)+1
+  num_ant = 0
+  ind_train = []
+  ind_valid = []
+
+  for i in range(num_types):
+    inds_type = np.arange(num_ant,num_ant+np.sum(ind_path==i))
+    num_ant += len(inds_type)
+    ind_train = [*ind_train, *inds_type[0:-4]]
+    ind_valid = [*ind_valid, *inds_type[-4:]]
 
   train_x=[]
   train_y=[]
   valid_x=[]
   valid_y=[]
 
-  for i in range(0,arr_x.shape[0]-5):
+  for i in ind_train:
     i_rand=random.randint(0,1e4)
 
     train_x.append(feature_extraction.image.extract_patches_2d(arr_x[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
     train_y.append(feature_extraction.image.extract_patches_2d(arr_y[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
 
-  for i in range(arr_x.shape[0]-5,arr_x.shape[0]):
+  for i in ind_valid:
     i_rand=random.randint(0,1e4)
 
     valid_x.append(feature_extraction.image.extract_patches_2d(arr_x[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
