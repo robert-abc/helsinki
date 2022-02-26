@@ -16,11 +16,11 @@ import torch
 parser = argparse.ArgumentParser(description=
             'Get weights to be used in the autoencoder for deblurring.')
 
-parser.add_argument('blur_path', type=str, nargs="+",
+parser.add_argument('--blur_path', type=str, nargs="+",
                     help='Path with images to be deblurred')
-parser.add_argument('sharp_path', type=str, nargs="+",
+parser.add_argument('--sharp_path', type=str, nargs="+",
                     help='Path with sharp images')
-parser.add_argument('weight_path', type=str,
+parser.add_argument('--weight_path', type=str,
                     help='Path to save weight')
 parser.add_argument('--blur_level', type=int, nargs="+", required = False,
                     choices=range(0,20), metavar='[0-19]',
@@ -110,6 +110,7 @@ else:
 
   # Spatial normalization of images
   for i in range(len(img_names)):
+    img = img[0:-3]+'npy'
     warp_matrix=autoencoder_tools.get_transform(arr_x[i],arr_y_orig[i])
     arr_y[i]=autoencoder_tools.apply_transform(arr_y_orig[i],warp_matrix)
 
