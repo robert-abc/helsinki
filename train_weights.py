@@ -195,6 +195,9 @@ else:
       x = np.load(os.path.join(self.x_path,str(index)+'.npy'))
       y = np.load(os.path.join(self.y_path,str(index)+'.npy'))
 
+      x = np.expand_dims(x,0)
+      y = np.expand_dims(y,0)
+
       x = torch.from_numpy(x).type(dtype) 
       y = torch.from_numpy(y).type(dtype)
 
