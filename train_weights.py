@@ -11,6 +11,7 @@ from utils import dip
 from torch.utils.data import Dataset, DataLoader
 from sklearn import feature_extraction
 import torch
+import shutil
 
 # Get input arguments
 parser = argparse.ArgumentParser(description=
@@ -54,6 +55,8 @@ for i, base_path in enumerate(args.blur_path):
   ind_path_i = np.ones(len(img_names_i),dtype=int)*i
   img_names = [*img_names, *img_names_i]
   ind_path = [*ind_path, *ind_path_i]
+
+ind_path = np.array(ind_path)
 
 print(f"{len(img_names)} images were found.")
 
@@ -129,50 +132,86 @@ else:
     ind_train = [*ind_train, *inds_type[0:-4]]
     ind_valid = [*ind_valid, *inds_type[-4:]]
 
-  train_x=[]
-  train_y=[]
-  valid_x=[]
-  valid_y=[]
+  ind_train = np.array(ind_train)
+  ind_valid = np.array(ind_valid)
+  
+  #train_x=[]
+  #train_y=[]
+  #valid_x=[]
+  #valid_y=[]
+  train_x_path = os.path.join('temp','train_x')
+  train_y_path = os.path.join('temp','train_y')
+  valid_x_path = os.path.join('temp','valid_x')
+  valid_y_path = os.path.join('temp','valid_y')
+
+  os.mkdir('temp')
+  os.mkdir(train_x_path)
+  os.mkdir(train_y_path)
+  os.mkdir(valid_x_path)
+  os.mkdir(valid_y_path)
 
   for i in ind_train:
     i_rand=random.randint(0,1e4)
 
-    train_x.append(feature_extraction.image.extract_patches_2d(arr_x[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
-    train_y.append(feature_extraction.image.extract_patches_2d(arr_y[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
+    train_x = feature_extraction.image.extract_patches_2d(arr_x[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand)
+    train_y = feature_extraction.image.extract_patches_2d(arr_y[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand)
+
+    for j in range(len(train_x)):
+      k = np.where(ind_train==i)[0][0]
+      np.save(os.path.join(train_x_path,str(k*patch_p_img+j)+'.npy'), train_x[j])
+      np.save(os.path.join(train_y_path,str(k*patch_p_img+j)+'.npy'), train_y[j])
 
   for i in ind_valid:
     i_rand=random.randint(0,1e4)
 
-    valid_x.append(feature_extraction.image.extract_patches_2d(arr_x[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
-    valid_y.append(feature_extraction.image.extract_patches_2d(arr_y[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand))
+    valid_x = feature_extraction.image.extract_patches_2d(arr_x[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand)
+    valid_y = feature_extraction.image.extract_patches_2d(arr_y[i],patch_size=(patch_size, patch_size),max_patches=patch_p_img,random_state=i_rand)
 
-  train_x=np.expand_dims(np.concatenate(train_x,axis=0),1)
-  train_y=np.expand_dims(np.concatenate(train_y,axis=0),1)
-  valid_x=np.expand_dims(np.concatenate(valid_x,axis=0),1)
-  valid_y=np.expand_dims(np.concatenate(valid_y,axis=0),1)
+    for j in range(len(valid_x)):
+      k = np.where(ind_valid==i)[0][0]
+      np.save(os.path.join(valid_x_path,str(k*patch_p_img+j)+'.npy'), valid_x[j])
+      np.save(os.path.join(valid_y_path,str(k*patch_p_img+j)+'.npy'), valid_y[j])
+
+
+  #train_x=np.expand_dims(np.concatenate(train_x,axis=0),1)
+  #train_y=np.expand_dims(np.concatenate(train_y,axis=0),1)
+  #valid_x=np.expand_dims(np.concatenate(valid_x,axis=0),1)
+  #valid_y=np.expand_dims(np.concatenate(valid_y,axis=0),1)
 
   del arr_x
   del arr_y_orig
   del arr_y
 
   class ImageDataset(Dataset):
-    def __init__(self,x,y):
-      self.n_samples = x.shape[0]
+    def __init__(self,x_path,y_path):
+      #self.n_samples = x.shape[0]
 
-      self.x_data = torch.from_numpy(x).type(dtype) 
-      self.y_data = torch.from_numpy(y).type(dtype)
+      #self.x_data = torch.from_numpy(x).type(dtype) 
+      #self.y_data = torch.from_numpy(y).type(dtype)
+      self.x_path = x_path
+      self.y_path = y_path
 
     def __getitem__(self, index):
-      return self.x_data[index], self.y_data[index]
+      x = np.load(os.path.join(self.x_path,str(index)+'.npy'))
+      y = np.load(os.path.join(self.y_path,str(index)+'.npy'))
+
+      x = torch.from_numpy(x).type(dtype) 
+      y = torch.from_numpy(y).type(dtype)
+
+      #return self.x_data[index], self.y_data[index]
+      return x, y
 
     def __len__(self):
-      return self.n_samples
+      #return self.n_samples
+      return len(os.listdir(self.x_path))
 
-  train_dataset = ImageDataset(train_x,train_y)
+  #train_dataset = ImageDataset(train_x,train_y)
+  train_dataset = ImageDataset(train_x_path,train_y_path)
   train_loader = DataLoader(dataset=train_dataset,
                             batch_size=32,
                             shuffle=True)
-  val_dataset = ImageDataset(valid_x,valid_y)
+  #val_dataset = ImageDataset(valid_x,valid_y)
+  val_dataset = ImageDataset(valid_x_path,valid_y_path)
   val_loader = DataLoader(dataset=val_dataset,
                             batch_size=32,
                             shuffle=False)
@@ -182,3 +221,4 @@ else:
     n_epoch=args.train_iter, loss_tol=0.0001, epoch_tol=3, l1_reg=10e-10)
 
   torch.save(best_params, os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.pth'))
+  shutil.rmtree('temp')
