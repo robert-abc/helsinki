@@ -54,8 +54,6 @@ def deblur(img_np, blur, autoencoder, dtype, config):
 
         total_loss.backward()
 
-        blur.blur_.weight.grad *= blur.grad_mask
-
         optimizer.step()
 
     out_deblur = deblur_net(deblur_input)

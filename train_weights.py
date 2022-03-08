@@ -36,9 +36,9 @@ parser.add_argument('--save_intermediary', dest='out_dip_path',
 parser.add_argument('--have_intermediary', dest='in_dip_path',  nargs="+",
                     type=str, default=None, required=False,
                     help='Path with output of DIP phase (default: None)')
-parser.add_argument('--num_iter', dest='num_iter',
-                    type=int, default=500, required=False,
-                    help='Number of iterations of the DIP (default: 500)')
+parser.add_argument('--config_option', dest='config_option',
+                    type=int, default=1, required=False,
+                    help='Parameters of DIP architecture (default: 1)')
 parser.add_argument('--num_iter', dest='num_iter',
                     type=int, default=None, required=False,
                     help='Number of iterations (default: 175 for config 1, 700 for config 2)')
@@ -107,14 +107,15 @@ if(args.in_dip_path is None):
   r_list=[1,2,3,4,6,8,9,11,13,15,17,18,20,21,22,26,31,35.5,41,44]
   radius=r_list[args.blur_level[ind_path[i]]]
 
-  # Model of blur
-  blur = tools.Blur(n_planes=1,kernel_type='circle', kernel_parameter=radius).type(dtype)
-  parametrize.register_parametrization(blur.blur_,"weight", tools.Rings(blur.kernel,6,4,dtype))
-
   for i,img in enumerate(img_names):
       path_blur=os.path.join(args.blur_path[ind_path[i]],img)
 
       img_arr,_,_=process.load_img(path_blur,width=512,enforse_div32='EXTEND')
+
+      # Model of blur
+      blur = tools.Blur(n_planes=1,kernel_type='circle', kernel_parameter=radius, im_shape=img_arr.shape).type(dtype)
+      parametrize.register_parametrization(blur.blur_,"weight", tools.Rings(blur.kernel,6,4,dtype))
+
       img_out=deblur.deblur(img_arr,blur,None,dtype,config)
 
       path_out=os.path.join(args.out_dip_path[ind_path[i]],img)

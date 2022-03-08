@@ -10,7 +10,7 @@ import numpy as np
 from scipy.ndimage import binary_erosion, binary_dilation
 
 class Blur(nn.Module):
-    def __init__(self, n_planes, kernel_type, kernel_parameter=None, kernel_width=None):
+    def __init__(self, n_planes, kernel_type, im_shape, kernel_parameter=None, kernel_width=None):
         super(Blur, self).__init__()
 
         if kernel_type in ['gauss', 'circle']:
@@ -40,8 +40,8 @@ class Blur(nn.Module):
 
         self.blur_ = blur
         
-        self.a = nn.Parameter(torch.ones([1,1,320,512])*0.35)
-        self.b = nn.Parameter(torch.ones([1,1,320,512])*0.6)
+        self.a = nn.Parameter(torch.ones([1,1,im_shape[1],im_shape[2]])*0.35)
+        self.b = nn.Parameter(torch.ones([1,1,im_shape[1],im_shape[2]])*0.6)
 
     def forward(self, input):
         res_conv = self.blur_(input)

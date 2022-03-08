@@ -25,7 +25,7 @@ parser.add_argument('--extension', dest='extension',
 parser.add_argument('--num_iter', dest='num_iter',
                     type=int, default=None, required=False,
                     help='Number of iterations (default: 225 for config 1, 750 for config 2)')
-parser.add_argument('--congif_option', dest='congif_option',
+parser.add_argument('--config_option', dest='config_option',
                     type=int, default=1, required=False,
                     help='Parameters of DIP architecture (default: 1)')
 parser.add_argument('--dl_param', dest='dl_param', nargs="+",
@@ -56,10 +56,6 @@ else:
 r_list=[1,2,3,4,6,8,9,11,13,15,17,18,20,21,22,26,31,35.5,41,44]
 radius=r_list[args.deblur_level]
 
-# Model of blur
-blur = tools.Blur(n_planes=1,kernel_type='circle', kernel_parameter=radius).type(dtype)
-parametrize.register_parametrization(blur.blur_,"weight", tools.Rings(blur.kernel,6,4,dtype))
-
 # Find weights for the blur level
 n_weight=args.deblur_level
 weights_names=os.listdir('weights')
@@ -84,7 +80,7 @@ if(args.config_option==1):
   if(args.num_iter is None):
     args.num_iter=225
   if(args.dl_param is None):
-    args.dl_param=0.01
+    args.dl_param=[0.01]
     iter_dl = [175]
 
   config = {
@@ -102,7 +98,7 @@ elif(args.config_option==2):
   if(args.num_iter is None):
     args.num_iter=750
   if(args.dl_param is None):
-    args.dl_param=0.01
+    args.dl_param=[0.01]
     iter_dl = [700]
 
   config = {
@@ -123,6 +119,11 @@ for img in img_names:
     path_out=path_out[0:-3]+'png'
 
     img_arr,orig_dim,extend_dim=process.load_img(path_in,width=512,enforse_div32='EXTEND')
+
+    # Model of blur
+    blur = tools.Blur(n_planes=1,kernel_type='circle', kernel_parameter=radius, im_shape=img_arr.shape).type(dtype)
+    parametrize.register_parametrization(blur.blur_,"weight", tools.Rings(blur.kernel,6,4,dtype))
+
     img_out=deblur.deblur(img_arr, blur, autoencoder, dtype, config)
 
     process.save_img(img_out,path_out,orig_dim,extend_dim)
