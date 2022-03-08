@@ -7,6 +7,7 @@ from math import sqrt, exp
 import torch.nn.functional as F
 from utils.autoencoder_tools import get_dl_estim
 import numpy as np
+from scipy.ndimage import binary_erosion, binary_dilation
 
 class Blur(nn.Module):
     def __init__(self, n_planes, kernel_type, kernel_parameter=None, kernel_width=None):
@@ -38,14 +39,9 @@ class Blur(nn.Module):
             blur.weight.data[i, i] = kernel_torch
 
         self.blur_ = blur
-
-        kminus = get_kernel(kernel_type_, kernel_width, kernel_parameter-2, False)
-        kplus = get_kernel(kernel_type_, kernel_width, kernel_parameter+2, False)
-        mask = np.expand_dims(kplus-kminus, [0,1]) 
-        self.grad_mask = torch.nn.Parameter(torch.from_numpy(mask), requires_grad=False)
         
-        self.a = nn.Parameter(torch.Tensor([0.35])) 
-        self.b = nn.Parameter(torch.Tensor([0.6])) 
+        self.a = nn.Parameter(torch.ones([1,1,320,512])*0.35)
+        self.b = nn.Parameter(torch.ones([1,1,320,512])*0.6)
 
     def forward(self, input):
         res_conv = self.blur_(input)
@@ -92,6 +88,47 @@ def get_kernel(kernel_type, kernel_width, kernel_parameter, norm=True):
       kernel = 1*(kernel>0)
 
     return kernel
+
+class Rings(nn.Module):
+  def __init__(self, ini_kernel, n_down, n_up, dtype):
+    super().__init__()
+
+    rings = []
+
+    mask = 1*(ini_kernel>0)
+
+    for i in range(n_up):
+      over = 1*binary_dilation(mask)
+      kernel = (over-mask)
+      rings.insert(0, kernel)
+
+      mask = over.copy()
+    
+    mask = 1*(ini_kernel>0)
+
+    for i in range(n_down):
+      sub = 1*binary_erosion(mask)
+      kernel = (mask-sub)
+      rings.append(kernel)
+
+      if(np.sum(sub)==0):
+        break
+      
+      mask = sub.copy()
+
+    self.fix = torch.from_numpy(sub*ini_kernel).type(dtype)
+    self.rings = torch.from_numpy(np.array(np.expand_dims(rings,0))).type(dtype)
+
+  def forward(self, X):
+    f = nn.ReLU()
+    sep = torch.multiply(self.rings,f(X))
+    val = (torch.sum(sep,dim=[0,2,3])/torch.sum(self.rings,dim=[0,2,3])).view(1,-1,1,1)
+    output = torch.multiply(self.rings,val)
+    output = torch.sum(output,dim=1,keepdim=True)
+    output = output + self.fix
+    output = output / output.sum()
+
+    return output
 
 def fill_noise(x, noise_type):
     """Fills tensor `x` with noise of type `noise_type`."""
@@ -192,12 +229,13 @@ def _ssim(img1, img2, window, window_size, channel, size_average=True):
         return ssim_map.mean(1).mean(1).mean(1)
 
 class SSIM(nn.Module):
-    def __init__(self, window_size=11, size_average=True):
+    def __init__(self, dtype=torch.cuda.FloatTensor, window_size=11, size_average=True):
         super(SSIM, self).__init__()
         self.window_size = window_size
         self.size_average = size_average
         self.channel = 1
-        self.window = create_window(window_size, self.channel)
+        self.dtype = dtype
+        self.window = create_window(window_size, self.channel, dtype)
 
     def forward(self, img1, img2):
         (_, channel, _, _) = img1.size()
@@ -205,7 +243,7 @@ class SSIM(nn.Module):
         if channel == self.channel and self.window.data.type() == img1.data.type():
             window = self.window
         else:
-            window = create_window(self.window_size, channel)
+            window = create_window(self.window_size, channel, self.dtype)
 
             if img1.is_cuda:
                 window = window.cuda(img1.get_device())
@@ -225,94 +263,3 @@ def ssim(img1, img2, dtype, window_size=11, size_average=True):
     window = window.type_as(img1)
 
     return _ssim(img1, img2, window, window_size, channel, size_average)
-
-def deblur_image(deblur_net, deblur_input, blur, img_np,
-        OPT_OVER, num_iter, reg_noise_std, LR, LR_kernel, iter_mean,
-        dtype, autoencoder, iter_dl, dl_param, method=0):
-
-    img_torch = torch.from_numpy(np.expand_dims(img_np,0)).type(dtype)
-    out_mean_deblur = np.zeros(img_np.shape)
-    torch_dl = torch.zeros(img_torch[0].size())
-
-    ind_dl=-1
-
-    net_input_saved = deblur_input.detach().clone()
-    noise = deblur_input.detach().clone()
-
-    p, p_kernel = get_params(OPT_OVER,deblur_net,deblur_input,blur)
-    optimizer = torch.optim.Adam([{'params':p}, {'params': p_kernel, 'lr': LR_kernel}], lr=LR)
-    mse_loss = torch.nn.MSELoss()
-
-    if method == 1:
-        for i in range(num_iter):
-            optimizer.zero_grad()
-
-            if reg_noise_std > 0:
-                deblur_input = net_input_saved + (noise.normal_() * reg_noise_std)
-            else:
-                deblur_input = net_input_saved
-
-            out_sharp = deblur_net(deblur_input)
-
-            if autoencoder is not None:
-                if i in iter_dl:
-                    if i == iter_dl[0]:
-                        out_sharp_np = torch_to_np(out_sharp)
-                    else:
-                        out_sharp_np = torch_to_np((1-dl_param[ind_dl])*out_sharp+dl_param[ind_dl]*torch_dl)
-
-                    img_dl = get_dl_estim(out_sharp_np[0], autoencoder, dtype)
-                    img_dl = np.expand_dims(img_dl, axis=0)
-                    torch_dl = np_to_torch(img_dl).type(dtype)
-                    ind_dl += 1
-
-                if i >= iter_dl[0]:
-                    out_sharp = ((1-dl_param[ind_dl])*out_sharp+dl_param[ind_dl]*torch_dl)
-
-            out_blur = blur(out_sharp)
-
-            total_loss = 1 - ssim(out_blur, img_torch, dtype)
-
-            if i >= iter_mean:
-                out_sharp_np = torch_to_np(out_sharp)
-                out_mean_deblur += out_sharp_np
-
-            total_loss.backward()
-
-            optimizer.step()
-    else:
-        for i in range(num_iter):
-            optimizer.zero_grad()
-
-            if reg_noise_std > 0:
-                deblur_input = net_input_saved + (noise.normal_() * reg_noise_std)
-            else:
-                deblur_input = net_input_saved
-
-            out_sharp = deblur_net(deblur_input)
-            out_blur = blur(out_sharp)
-
-            total_loss = 1 - ssim(out_blur, img_torch, dtype)
-
-            if i >= iter_mean:
-                out_sharp_np = torch_to_np(out_sharp)
-                out_mean_deblur += out_sharp_np
-
-            if autoencoder is not None:
-                if i in iter_dl:
-                    out_sharp_np = torch_to_np(out_sharp)
-                    img_dl = get_dl_estim(out_sharp_np[0],autoencoder,dtype,tam=96,out=16)
-                    img_dl = np.expand_dims(img_dl,axis=0)
-                    torch_dl = np_to_torch(img_dl).type(dtype)
-                    ind_dl += 1
-
-                if i >= iter_dl[0]:
-                    total_loss += dl_param[ind_dl]*mse_loss(out_sharp, torch_dl) #(1 - ssim(torch_dl, out_sharp, dtype))
-
-            total_loss.backward()
-
-            blur.blur_.weight.grad *= blur.grad_mask
-
-            optimizer.step()
-    
-    return out_mean_deblur

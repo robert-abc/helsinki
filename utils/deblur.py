@@ -3,42 +3,65 @@ from utils.tools import *
 from utils.dip import *
 import numpy as np
 
-def deblur(img_np, blur, autoencoder, dtype, num_iter=1500, dl_param=[1e-2,1e-2,5e-3,5e-3]):
-    #  Image Parameters
-    width = 512 # Desired image width
-    enforse_div32 = 'EXTEND' # Force image to have dims multiple of 32
-
-    # Input Parameters
-    input_depth = 32
-    input_type = 'noise'
-    OPT_OVER = 'net'
-
-    # Optimization Parameters
-    OPTIMIZER = 'adam'
-    pad = 'reflection'
-    NET_TYPE = 'skip'
-    LR = 0.01
-    LR_kernel = 1e-6
-    reg_noise_std = 0.03
-    iter_dl = num_iter - np.arange(len(dl_param)+1,1,-1)*100
-    iter_mean = num_iter-50
-
-    deblur_input = get_noise(input_depth,input_type,
+def deblur(img_np, blur, autoencoder, dtype, config):
+    deblur_input = get_noise(config['input_depth'], 'noise',
                     (img_np.shape[1],img_np.shape[2])).type(dtype).detach()
 
-    deblur_net = get_net(input_depth, NET_TYPE, pad,
+    deblur_net = get_net(config['input_depth'], 'skip', 'reflection',
                   skip_n33d=128,
                   skip_n33u=128,
-                  skip_n11=4,
+                  skip_n11=config['skip_n11'],
                   n_channels=1,
-                  num_scales=5,
+                  num_scales=config['num_scales'],
                   upsample_mode='bilinear').type(dtype)
+
+    img_torch = torch.from_numpy(np.expand_dims(img_np,0)).type(dtype)
+    torch_dl = torch.zeros(img_torch[0].size())
+
+    ind_dl=-1
+
+    net_input_saved = deblur_input.detach().clone()
+    noise = deblur_input.detach().clone()
+
+    p, p_kernel = get_params('net,blur',deblur_net,deblur_input,blur)
     
-    out_mean_deblur = deblur_image(deblur_net, deblur_input, blur, img_np,
-      OPT_OVER, num_iter, reg_noise_std, LR, LR_kernel, iter_mean, dtype, autoencoder,
-      iter_dl, dl_param)
+    optimizer = torch.optim.Adam([{'params':p},
+     {'params': p_kernel, 'lr': config['LR_kernel']}], lr=config['LR'])
 
-    img_mean=((out_mean_deblur[0]-np.min(out_mean_deblur[0]))/(np.max(out_mean_deblur[0])-np.min(out_mean_deblur[0])))
-    img_mean=np.expand_dims(img_mean,axis=0)
+    for i in range(config['num_iter']):
+        optimizer.zero_grad()
 
-    return img_mean
+        if config['reg_noise_std'] > 0:
+            deblur_input = net_input_saved + (noise.normal_() * config['reg_noise_std'])
+        else:
+            deblur_input = net_input_saved
+
+        out_sharp = deblur_net(deblur_input)
+        out_blur = blur(out_sharp)
+
+        total_loss = 1 - ssim(out_blur, img_torch, dtype)
+
+        if autoencoder is not None:
+            if i in config['iter_dl']:
+                out_sharp_np = torch_to_np(out_sharp)
+                img_dl = get_dl_estim(out_sharp_np[0],autoencoder,dtype,tam=96,out=16)
+                img_dl = np.expand_dims(img_dl,axis=0)
+                torch_dl = np_to_torch(img_dl).type(dtype)
+                ind_dl += 1
+
+            if i >= config['iter_dl'][0]:
+                total_loss += config['dl_param'][ind_dl]*(1 - ssim(torch_dl, out_sharp, dtype))
+
+        total_loss.backward()
+
+        blur.blur_.weight.grad *= blur.grad_mask
+
+        optimizer.step()
+
+    out_deblur = deblur_net(deblur_input)
+    out_deblur = torch_to_np(out_deblur)
+
+    img_res=((out_deblur[0]-np.min(out_deblur[0]))/(np.max(out_deblur[0])-np.min(out_deblur[0])))
+    img_res=np.expand_dims(img_res,axis=0)
+
+    return img_res

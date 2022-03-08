@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 
+import tools
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
@@ -53,9 +54,12 @@ class Autoencoder(nn.Module):
     return dec
 
 def train_model(model, train_loader, valid_loader,
-  loss=torch.nn.MSELoss(), optim='Adam', n_epoch=20,
+  loss_type='SSIM', optim='Adam', n_epoch=20,
   val_loss_best=np.inf, loss_tol = 0, epoch_tol = -1,
   l1_reg=0):
+  
+  if(loss_type == 'SSIM'):
+    loss=tools.SSIM()
 
   if(optim=='Adam'):
     optimizer = torch.optim.Adam(model.parameters())
@@ -68,7 +72,10 @@ def train_model(model, train_loader, valid_loader,
       y_predicted = model(x)
 
       # loss
-      l = loss(y_predicted, y)
+      if(loss=='SSIM'):
+        l = 1 - loss(y_predicted, y)
+      else:
+        l = loss(y_predicted, y)
 
       if(l1_reg > 0):
         param_layers = [lp.view(-1) for lp in model.parameters()]
@@ -99,7 +106,11 @@ def train_model(model, train_loader, valid_loader,
         y_predicted = model(x)
 
         # loss
-        l = loss(y, y_predicted)
+        if(loss=='SSIM'):
+          l = 1 - loss(y_predicted, y)
+        else:
+          l = loss(y_predicted, y)
+
         val_loss_batchs.append(l.item())
 
       val_loss_mean = np.array(val_loss_batchs).mean()

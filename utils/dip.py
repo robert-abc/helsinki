@@ -49,7 +49,6 @@ class GenNoise(nn.Module):
     def forward(self, input):
         a = list(input.size())
         a[1] = self.dim2
-        # print (input.data.type())
 
         b = torch.zeros(a).type_as(input.data)
         b.normal_()
@@ -117,13 +116,6 @@ def skip(
         need_sigmoid=True, need_bias=True,
         pad='zero', upsample_mode='nearest', downsample_mode='stride', act_fun='LeakyReLU',
         need1x1_up=True):
-    """Assembles encoder-decoder with skip connections.
-    Arguments:
-        act_fun: Either string 'LeakyReLU|Swish|ELU|none' or module (e.g. nn.ReLU)
-        pad (string): zero|reflection (default: 'zero')
-        upsample_mode (string): 'nearest|bilinear' (default: 'nearest')
-        downsample_mode (string): 'stride|avg|max|lanczos2' (default: 'stride')
-    """
     assert len(num_channels_down) == len(num_channels_up) == len(num_channels_skip)
 
     n_scales = len(num_channels_down)
@@ -165,8 +157,6 @@ def skip(
             skip.add(bn(num_channels_skip[i]))
             skip.add(act(act_fun))
 
-        # skip.add(Concat(2, GenNoise(nums_noise[i]), skip_part))
-
         deeper.add(conv(input_depth, num_channels_down[i], filter_size_down[i], 2, bias=need_bias, pad=pad, downsample_mode=downsample_mode[i]))
         deeper.add(bn(num_channels_down[i]))
         deeper.add(act(act_fun))
@@ -184,7 +174,7 @@ def skip(
             deeper.add(deeper_main)
             k = num_channels_up[i + 1]
 
-        deeper.add(nn.Upsample(scale_factor=2, mode=upsample_mode[i]))
+        deeper.add(nn.Upsample(scale_factor=2, mode=upsample_mode[i], align_corners=True))
 
         model_tmp.add(conv(num_channels_skip[i] + k, num_channels_up[i], filter_size_up[i], 1, bias=need_bias, pad=pad))
         model_tmp.add(bn(num_channels_up[i]))
