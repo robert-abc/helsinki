@@ -72,7 +72,7 @@ def train_model(model, train_loader, valid_loader,
       y_predicted = model(x)
 
       # loss
-      if(loss=='SSIM'):
+      if(loss_type=='SSIM'):
         l = 1 - loss(y_predicted, y)
       else:
         l = loss(y_predicted, y)
@@ -106,7 +106,7 @@ def train_model(model, train_loader, valid_loader,
         y_predicted = model(x)
 
         # loss
-        if(loss=='SSIM'):
+        if(loss_type=='SSIM'):
           l = 1 - loss(y_predicted, y)
         else:
           l = loss(y_predicted, y)
