@@ -30,7 +30,7 @@ parser.add_argument('--blur_level', type=int, nargs="+", required = False,
 parser.add_argument('--extension', dest='extension',
                     type=str, default='tif', required=False,
                     help='Image extension (default: tif)')
-parser.add_argument('--save_intermediary', dest='out_dip_path',
+parser.add_argument('--save_intermediary', dest='out_dip_path', nargs="+",
                     type=str, default=None, required=False,
                     help='Path to save output of DIP phase (default: None)')
 parser.add_argument('--have_intermediary', dest='in_dip_path',  nargs="+",
