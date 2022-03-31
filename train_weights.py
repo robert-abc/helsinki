@@ -85,7 +85,7 @@ if(args.in_dip_path is None):
         'input_depth': 16,
         'skip_n11': 32,
         'num_scales': 8,
-        'LR': 0.001,
+        'LR': 0.01,
         'LR_kernel': 5e-6,
         'reg_noise_std': 0.003,
     }

@@ -39,8 +39,8 @@ class Blur(nn.Module):
 
         self.blur_ = blur
         
-        self.a = nn.Parameter(torch.ones([1,1,im_shape[1],im_shape[2]])*0.35)
-        self.b = nn.Parameter(torch.ones([1,1,im_shape[1],im_shape[2]])*0.6)
+        self.a = nn.Parameter(torch.tensor([0.35]))
+        self.b = nn.Parameter(torch.tensor([0.6]))
 
     def forward(self, input):
         res_conv = self.blur_(input)
