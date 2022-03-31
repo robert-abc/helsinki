@@ -80,7 +80,7 @@ if(args.config_option==1):
   if(args.num_iter is None):
     args.num_iter=225
   if(args.dl_param is None):
-    args.dl_param=[0.01]
+    args.dl_param=[0.03]
     iter_dl = [175]
 
   config = {
