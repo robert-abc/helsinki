@@ -82,12 +82,12 @@ if(args.in_dip_path is None):
 
     config = {
         'num_iter': args.num_iter, 
-        'input_depth': 16,
+        'input_depth': 32,
         'skip_n11': 32,
         'num_scales': 8,
-        'LR': 0.01,
+        'LR': 0.003,
         'LR_kernel': 5e-6,
-        'reg_noise_std': 0.003,
+        'reg_noise_std': 0.004,
     }
   elif(args.config_option==2):
     if(args.num_iter is None):
