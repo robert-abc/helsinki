@@ -86,12 +86,12 @@ if(args.config_option==1):
   config = {
       'num_iter': args.num_iter, 
       'dl_param': args.dl_param,
-      'input_depth': 16,
+      'input_depth': 32,
       'skip_n11': 32,
       'num_scales': 8,
-      'LR': 0.01,
+      'LR': 0.003,
       'LR_kernel': 5e-6,
-      'reg_noise_std': 0.003,
+      'reg_noise_std': 0.004,
       'iter_dl': iter_dl
   }
 elif(args.config_option==2):
