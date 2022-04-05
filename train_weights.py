@@ -236,7 +236,7 @@ else:
 
   model = autoencoder_tools.Autoencoder().type(dtype)
   best_params = autoencoder_tools.train_model(model, train_loader, val_loader,
-    n_epoch=args.train_iter, loss_tol=0.0001, epoch_tol=3, l1_reg=10e-10)
+    n_epoch=args.train_iter, loss_tol=0.000001, epoch_tol=4, l1_reg=10e-10)
 
   torch.save(best_params, os.path.join(args.weight_path,'weights_'+str(args.blur_level)+'.pth'))
   shutil.rmtree('temp')
