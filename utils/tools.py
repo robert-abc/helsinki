@@ -114,8 +114,10 @@ class Rings(nn.Module):
         break
       
       mask = sub.copy()
-
-    self.fix = torch.from_numpy(sub*ini_kernel).type(dtype)
+    
+    if(np.sum(sub)!=0):
+      rings.append(mask)
+    
     self.rings = torch.from_numpy(np.array(np.expand_dims(rings,0))).type(dtype)
 
   def forward(self, X):
@@ -124,7 +126,6 @@ class Rings(nn.Module):
     val = (torch.sum(sep,dim=[0,2,3])/torch.sum(self.rings,dim=[0,2,3])).view(1,-1,1,1)
     output = torch.multiply(self.rings,val)
     output = torch.sum(output,dim=1,keepdim=True)
-    output = output + self.fix
     output = output / output.sum()
 
     return output
