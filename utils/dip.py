@@ -49,7 +49,6 @@ class GenNoise(nn.Module):
     def forward(self, input):
         a = list(input.size())
         a[1] = self.dim2
-        # print (input.data.type())
 
         b = torch.zeros(a).type_as(input.data)
         b.normal_()
@@ -58,18 +57,6 @@ class GenNoise(nn.Module):
 
         return x
 
-class Swish(nn.Module):
-    """
-        https://arxiv.org/abs/1710.05941
-        The hype was so huge that I could not help but try it
-    """
-    def __init__(self):
-        super(Swish, self).__init__()
-        self.s = nn.Sigmoid()
-
-    def forward(self, x):
-        return x * self.s(x)
-
 def act(act_fun = 'LeakyReLU'):
     '''
         Either string defining an activation function or module (e.g. nn.ReLU)
@@ -77,8 +64,6 @@ def act(act_fun = 'LeakyReLU'):
     if isinstance(act_fun, str):
         if act_fun == 'LeakyReLU':
             return nn.LeakyReLU(0.2, inplace=True)
-        elif act_fun == 'Swish':
-            return Swish()
         elif act_fun == 'ELU':
             return nn.ELU()
         elif act_fun == 'none':
@@ -99,8 +84,6 @@ def conv(in_f, out_f, kernel_size, stride=1, bias=True, pad='zero', downsample_m
             downsampler = nn.AvgPool2d(stride, stride)
         elif downsample_mode == 'max':
             downsampler = nn.MaxPool2d(stride, stride)
-        elif downsample_mode  in ['lanczos2', 'lanczos3']:
-            downsampler = Downsampler(n_planes=out_f, factor=stride, kernel_type=downsample_mode, phase=0.5, preserve_size=True)
         else:
             assert False
 
@@ -118,28 +101,11 @@ def conv(in_f, out_f, kernel_size, stride=1, bias=True, pad='zero', downsample_m
     return nn.Sequential(*layers)
 
 def get_net(input_depth, NET_TYPE, pad, upsample_mode, n_channels=3, act_fun='LeakyReLU', skip_n33d=128, skip_n33u=128, skip_n11=4, num_scales=5, downsample_mode='stride'):
-    if NET_TYPE == 'ResNet':
-        # TODO
-        net = ResNet(input_depth, 3, 10, 16, 1, nn.BatchNorm2d, False)
-    elif NET_TYPE == 'skip':
-        net = skip(input_depth, n_channels, num_channels_down = [skip_n33d]*num_scales if isinstance(skip_n33d, int) else skip_n33d,
-                                            num_channels_up =   [skip_n33u]*num_scales if isinstance(skip_n33u, int) else skip_n33u,
-                                            num_channels_skip = [skip_n11]*num_scales if isinstance(skip_n11, int) else skip_n11,
-                                            upsample_mode=upsample_mode, downsample_mode=downsample_mode,
-                                            need_sigmoid=True, need_bias=True, pad=pad, act_fun=act_fun)
-
-    elif NET_TYPE == 'texture_nets':
-        net = get_texture_nets(inp=input_depth, ratios = [32, 16, 8, 4, 2, 1], fill_noise=False,pad=pad)
-
-    elif NET_TYPE =='UNet':
-        net = UNet(num_input_channels=input_depth, num_output_channels=3,
-                   feature_scale=4, more_layers=0, concat_x=False,
-                   upsample_mode=upsample_mode, pad=pad, norm_layer=nn.BatchNorm2d, need_sigmoid=True, need_bias=True)
-    elif NET_TYPE == 'identity':
-        assert input_depth == 3
-        net = nn.Sequential()
-    else:
-        assert False
+    net = skip(input_depth, n_channels, num_channels_down = [skip_n33d]*num_scales if isinstance(skip_n33d, int) else skip_n33d,
+                                        num_channels_up =   [skip_n33u]*num_scales if isinstance(skip_n33u, int) else skip_n33u,
+                                        num_channels_skip = [skip_n11]*num_scales if isinstance(skip_n11, int) else skip_n11,
+                                        upsample_mode=upsample_mode, downsample_mode=downsample_mode,
+                                        need_sigmoid=True, need_bias=True, pad=pad, act_fun=act_fun)
 
     return net
 
@@ -150,13 +116,6 @@ def skip(
         need_sigmoid=True, need_bias=True,
         pad='zero', upsample_mode='nearest', downsample_mode='stride', act_fun='LeakyReLU',
         need1x1_up=True):
-    """Assembles encoder-decoder with skip connections.
-    Arguments:
-        act_fun: Either string 'LeakyReLU|Swish|ELU|none' or module (e.g. nn.ReLU)
-        pad (string): zero|reflection (default: 'zero')
-        upsample_mode (string): 'nearest|bilinear' (default: 'nearest')
-        downsample_mode (string): 'stride|avg|max|lanczos2' (default: 'stride')
-    """
     assert len(num_channels_down) == len(num_channels_up) == len(num_channels_skip)
 
     n_scales = len(num_channels_down)
@@ -198,8 +157,6 @@ def skip(
             skip.add(bn(num_channels_skip[i]))
             skip.add(act(act_fun))
 
-        # skip.add(Concat(2, GenNoise(nums_noise[i]), skip_part))
-
         deeper.add(conv(input_depth, num_channels_down[i], filter_size_down[i], 2, bias=need_bias, pad=pad, downsample_mode=downsample_mode[i]))
         deeper.add(bn(num_channels_down[i]))
         deeper.add(act(act_fun))
@@ -217,7 +174,7 @@ def skip(
             deeper.add(deeper_main)
             k = num_channels_up[i + 1]
 
-        deeper.add(nn.Upsample(scale_factor=2, mode=upsample_mode[i]))
+        deeper.add(nn.Upsample(scale_factor=2, mode=upsample_mode[i], align_corners=True))
 
         model_tmp.add(conv(num_channels_skip[i] + k, num_channels_up[i], filter_size_up[i], 1, bias=need_bias, pad=pad))
         model_tmp.add(bn(num_channels_up[i]))

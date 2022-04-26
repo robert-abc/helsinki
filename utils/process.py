@@ -68,23 +68,6 @@ def get_image(path, imsize=-1):
 
     return img, img_np
 
-def get_torch_imgs(img_np,down_factors=[16,8,4]):
-  img_list=[]
-
-  for df in down_factors:
-    dim=(int(img_np.shape[2]/df),int(img_np.shape[1]/df))
-
-    img_np_lr = cv2.resize(img_np[0],dim,interpolation=cv2.INTER_AREA)
-    img_np_lr = cv2.resize(img_np_lr,img_np.shape[2:0:-1],interpolation=cv2.INTER_AREA)
-    img_np_lr = np.expand_dims(img_np_lr,axis=0)
-
-    torch_lr = np_to_torch(img_np_lr).type(dtype)
-    img_list.append(torch_lr)
-
-  img_list.append(np_to_torch(img_np).type(dtype))
-
-  return img_list
-
 def load_img(fname, width, enforse_div32=None):
     '''Loads an image, resizes it, center crops and downscales.
     Args:
@@ -105,7 +88,7 @@ def load_img(fname, width, enforse_div32=None):
                np.round(img_pil.size[1]*factor).astype(int)
     ]
 
-    img_LR_pil = img_pil.resize(LR_size, Image.ANTIALIAS)
+    img_LR_pil = img_pil.resize(LR_size, Image.BICUBIC)
     img_LR_np = pil_to_np(img_LR_pil)
 
     new_size=[0,0]

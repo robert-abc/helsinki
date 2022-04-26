@@ -5,24 +5,27 @@ import torch.nn as nn
 import cv2
 from math import sqrt, exp
 import torch.nn.functional as F
+import numpy as np
+from scipy.ndimage import binary_erosion, binary_dilation
 
 class Blur(nn.Module):
-
-    def __init__(self, n_planes, kernel_type, kernel_width=None, sigma=None):
+    def __init__(self, n_planes, kernel_type, im_shape, kernel_parameter=None, kernel_width=None):
         super(Blur, self).__init__()
 
-        if kernel_type in ['gauss','circle']:
+        if kernel_type in ['gauss', 'circle']:
             kernel_type_ = kernel_type
         else:
-            assert False, 'wrong name kernel'
+            assert False, 'wrong kernel type'
+        
+        assert kernel_parameter, 'radius or sigma is not specified'
 
         if kernel_width is None:
-          kernel_width=int(2*sigma+3)
+          kernel_width = int(2*kernel_parameter + 8) #3)
 
         if(kernel_width%2 == 0):
-          kernel_width+=1
+          kernel_width += 1
 
-        self.kernel = get_kernel(kernel_type_, kernel_width, sigma=sigma)
+        self.kernel = get_kernel(kernel_type_, kernel_width, kernel_parameter)
 
         blur = nn.Conv2d(n_planes, n_planes, kernel_size=self.kernel.shape,
                                 padding='same', padding_mode='replicate')
@@ -30,44 +33,28 @@ class Blur(nn.Module):
         blur.bias.data[:] = 0
 
         kernel_torch = torch.from_numpy(self.kernel)
+
         for i in range(n_planes):
             blur.weight.data[i, i] = kernel_torch
 
         self.blur_ = blur
+        
+        self.a = nn.Parameter(torch.tensor([0.35]))
+        self.b = nn.Parameter(torch.tensor([0.6]))
 
     def forward(self, input):
-        x= input
+        res_conv = self.blur_(input)
+        output = self.a*res_conv + self.b
 
-        self.x = x
-        return self.blur_(x)
+        return output
 
-def get_torch_imgs(img_np,down_factors=[16,8,4],dtype=torch.cuda.FloatTensor):
-  img_list=[]
-
-  for df in down_factors:
-    dim=(int(img_np.shape[2]/df),int(img_np.shape[1]/df))
-
-    img_np_lr = cv2.resize(img_np[0],dim,interpolation=cv2.INTER_AREA)
-    img_np_lr = cv2.resize(img_np_lr,img_np.shape[2:0:-1],interpolation=cv2.INTER_AREA)
-    img_np_lr = np.expand_dims(img_np_lr,axis=0)
-
-    torch_lr = np_to_torch(img_np_lr).type(dtype)
-    img_list.append(torch_lr)
-
-  img_list.append(np_to_torch(img_np).type(dtype))
-
-  return img_list
-
-def get_kernel(kernel_type, kernel_width, sigma=None):
-    assert kernel_type in ['gauss', 'circle']
-
+def get_kernel(kernel_type, kernel_width, kernel_parameter, norm=True):
     kernel = np.zeros([kernel_width, kernel_width])
 
     if kernel_type == 'gauss':
-        assert sigma, 'sigma is not specified'
-
+        sigma = kernel_parameter
         center = (kernel_width + 1.)/2.
-        sigma_sq =  sigma * sigma
+        sigma_sq =  sigma**2
 
         for i in range(1, kernel.shape[0] + 1):
             for j in range(1, kernel.shape[1] + 1):
@@ -77,26 +64,71 @@ def get_kernel(kernel_type, kernel_width, sigma=None):
                 kernel[i - 1][j - 1] = kernel[i - 1][j - 1]/(2. * np.pi * sigma_sq)
 
     elif kernel_type == 'circle':
-      assert sigma, 'radius is not specified'
-
+      r = kernel_parameter
       n=kernel_width
       m=kernel_width
-      kernel=np.ones((m,n))/(np.pi*sigma**2)
+
+      kernel=np.ones((m,n))/(np.pi*r**2)
 
       x=np.arange(-np.fix(n/2),np.ceil(n/2))
       y=np.arange(-np.fix(m/2),np.ceil(m/2))
 
       X,Y=np.meshgrid(x,y)
 
-      mask = (X)**2 + (Y)**2 < sigma**2
+      mask = (X)**2 + (Y)**2 < r**2
 
       kernel = mask*kernel
     else:
-        assert False, 'wrong method name'
+        assert False, 'wrong kernel type'
 
-    kernel /= kernel.sum()
+    if(norm):
+      kernel /= kernel.sum()
+    else:
+      kernel = 1*(kernel>0)
 
     return kernel
+
+class Rings(nn.Module):
+  def __init__(self, ini_kernel, n_down, n_up, dtype):
+    super().__init__()
+
+    rings = []
+
+    mask = 1*(ini_kernel>0)
+
+    for i in range(n_up):
+      over = 1*binary_dilation(mask)
+      kernel = (over-mask)
+      rings.insert(0, kernel)
+
+      mask = over.copy()
+    
+    mask = 1*(ini_kernel>0)
+
+    for i in range(n_down):
+      sub = 1*binary_erosion(mask)
+      kernel = (mask-sub)
+      rings.append(kernel)
+
+      if(np.sum(sub)==0):
+        break
+      
+      mask = sub.copy()
+    
+    if(np.sum(sub)!=0):
+      rings.append(mask)
+    
+    self.rings = torch.from_numpy(np.array(np.expand_dims(rings,0))).type(dtype)
+
+  def forward(self, X):
+    f = nn.ReLU()
+    sep = torch.multiply(self.rings,f(X))
+    val = (torch.sum(sep,dim=[0,2,3])/torch.sum(self.rings,dim=[0,2,3])).view(1,-1,1,1)
+    output = torch.multiply(self.rings,val)
+    output = torch.sum(output,dim=1,keepdim=True)
+    output = output / output.sum()
+
+    return output
 
 def fill_noise(x, noise_type):
     """Fills tensor `x` with noise of type `noise_type`."""
@@ -144,21 +176,25 @@ def get_params(opt_over, net, net_input, blur=None):
     '''
     opt_over_list = opt_over.split(',')
     params = []
+    params_reduc = []
 
     for opt in opt_over_list:
-
         if opt == 'net':
             params += [x for x in net.parameters() ]
         elif  opt=='blur':
             assert blur is not None
-            params = [x for x in blur.parameters()]
+            for x in blur.parameters():
+              if(len(x.size())==4 and x.requires_grad):
+                params_reduc += [x]
+              else:
+                params += [x]
         elif opt == 'input':
             net_input.requires_grad = True
             params += [net_input]
         else:
             assert False, 'what is it?'
 
-    return params
+    return params, params_reduc
 
 def gaussian(window_size, sigma):
     gauss = torch.Tensor([exp(-(x - window_size // 2) ** 2 / float(2 * sigma ** 2)) for x in range(window_size)])
@@ -192,14 +228,14 @@ def _ssim(img1, img2, window, window_size, channel, size_average=True):
     else:
         return ssim_map.mean(1).mean(1).mean(1)
 
-class SSIM(
-nn.Module):
-    def __init__(self, window_size=11, size_average=True):
+class SSIM(nn.Module):
+    def __init__(self, dtype=torch.cuda.FloatTensor, window_size=11, size_average=True):
         super(SSIM, self).__init__()
         self.window_size = window_size
         self.size_average = size_average
         self.channel = 1
-        self.window = create_window(window_size, self.channel)
+        self.dtype = dtype
+        self.window = create_window(window_size, self.channel, dtype)
 
     def forward(self, img1, img2):
         (_, channel, _, _) = img1.size()
@@ -207,7 +243,7 @@ nn.Module):
         if channel == self.channel and self.window.data.type() == img1.data.type():
             window = self.window
         else:
-            window = create_window(self.window_size, channel)
+            window = create_window(self.window_size, channel, self.dtype)
 
             if img1.is_cuda:
                 window = window.cuda(img1.get_device())
@@ -227,39 +263,3 @@ def ssim(img1, img2, dtype, window_size=11, size_average=True):
     window = window.type_as(img1)
 
     return _ssim(img1, img2, window, window_size, channel, size_average)
-
-def optimize(optimizer_type, parameters, closure, LR, num_iter):
-    """Runs optimization loop.
-    Args:
-        optimizer_type: 'LBFGS' of 'adam'
-        parameters: list of Tensors to optimize over
-        closure: function, that returns loss variable
-        LR: learning rate
-        num_iter: number of iterations
-    """
-    if optimizer_type == 'LBFGS':
-        # Do several steps with adam first
-        optimizer = torch.optim.Adam(parameters, lr=0.001)
-        for j in range(100):
-            optimizer.zero_grad()
-            closure()
-            optimizer.step()
-
-        print('Starting optimization with LBFGS')
-        def closure2():
-            optimizer.zero_grad()
-            return closure()
-        optimizer = torch.optim.LBFGS(parameters, max_iter=num_iter, lr=LR, tolerance_grad=-1, tolerance_change=-1)
-        optimizer.step(closure2)
-
-    elif optimizer_type == 'adam':
-        print('Starting optimization with ADAM')
-        optimizer = torch.optim.Adam(parameters, lr=LR)
-
-        for j in range(num_iter):
-            optimizer.zero_grad()
-            closure()
-            optimizer.step()
-
-    else:
-        assert False
